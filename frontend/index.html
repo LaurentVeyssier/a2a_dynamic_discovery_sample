@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A2A Dynamic Discovery Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-project-diagram"></i>
+                <h1>A2A <span>Flow</span></h1>
+            </div>
+            <div class="status-indicators">
+                <div class="indicator" id="pa-status"><span class="dot"></span> PA Agent</div>
+                <div class="indicator" id="sse-status"><span class="dot"></span> Stream</div>
+            </div>
+        </header>
+
+        <main>
+            <!-- Flow Section -->
+            <section class="pane flow-pane">
+                <div class="pane-header">
+                    <i class="fas fa-route"></i>
+                    <h2>Agent Communication Flow</h2>
+                    <button id="clear-flow" title="Clear flow"><i class="fas fa-trash-alt"></i></button>
+                </div>
+                <div class="flow-content" id="flow-timeline">
+                    <!-- Events will be injected here -->
+                    <div class="empty-state">
+                        <i class="fas fa-satellite-dish"></i>
+                        <p>Waiting for agent activity...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chat Section -->
+            <section class="pane chat-pane">
+                <div class="pane-header">
+                    <i class="fas fa-comment-alt"></i>
+                    <h2>Personal Assistant</h2>
+                </div>
+                <div class="chat-content" id="chat-messages">
+                    <div class="message assistant">
+                        <div class="message-bubble">
+                            Hello! I am your A2A Personal Assistant. How can I help you today?
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-input-container">
+                    <form id="chat-form">
+                        <input type="text" id="user-input" placeholder="Type your request here..." autocomplete="off">
+                        <button type="submit" id="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="main.js"></script>
+</body>
+</html>

@@ -2,3 +2,6 @@ google-adk[a2a]
 rich
 httpx
 python-dotenv
+fastapi
+uvicorn
+sse-starlette
