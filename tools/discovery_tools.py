@@ -53,7 +53,7 @@ class RendezvousRegistry:
         self.base_url = base_url.rstrip('/')
         self._agents_cache = []
         self._last_fetch = 0
-        self._cache_ttl = 10  # seconds
+        self._cache_ttl = 20  # seconds
 
     async def get_all_agents(self) -> List[Dict[str, Any]]:
         """Fetch all live agents from the rendezvous agent."""
@@ -105,7 +105,7 @@ async def discovery_agent_tool(query: str) -> str:
     Search for an agent matching the query.
     
     Args:
-        query: Keywords to match against agent name, description, or skills.
+        query: maximum two keyword(s) to match against agent name, description, or skills.
     Returns:
         A formatted string listing matching agents and their card URLs.
     """
