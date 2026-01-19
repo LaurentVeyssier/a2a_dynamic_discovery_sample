@@ -1,0 +1,69 @@
+import subprocess
+import time
+import sys
+import os
+from rich.console import Console
+
+console = Console()
+
+AGENTS = [
+    {"name": "airline_agent", "path": "airline_agent", "port": 9000},
+    {"name": "travel_agent", "path": "travel_agent", "port": 9001},
+    {"name": "personal_assistant", "path": "personal_assistant", "port": 9002},
+]
+
+def run_agents():
+    processes = []
+    
+    console.print("[bold blue]Starting all agents...[/bold blue]")
+    
+    for agent in AGENTS:
+        # Construct the uvicorn command
+        # Format: uvicorn <folder>.<file_basename>:a2a_app
+        module_path = f"{agent['path']}.agent:a2a_app"
+        cmd = [
+            "uv", "run", "uvicorn", module_path,
+            "--host", "127.0.0.1",
+            "--port", str(agent["port"]),
+        ]
+        
+        console.print(f"Starting [bold cyan]{agent['name']}[/bold cyan] on port {agent['port']}...")
+        
+        # Start the process. Using a separate shell on Windows to see output if needed, 
+        # but here we'll just pipe it to keep it clean.
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            env=os.environ.copy()
+        )
+        processes.append((agent["name"], process))
+        
+        # Short sleep to let the server start and register
+        time.sleep(2)
+
+    console.print("\n[bold green]All agents are running![/bold green]")
+    console.print("Press Ctrl+C to stop all agents.\n")
+
+    try:
+        while True:
+            for name, proc in processes:
+                # Read output non-blockingly (simple version)
+                line = proc.stdout.readline()
+                if line:
+                    console.print(f"[[bold]{name}[/bold]] {line.strip()}")
+                
+                if proc.poll() is not None:
+                    console.print(f"[bold red]Process {name} exited with code {proc.returncode}[/bold red]")
+                    return
+            time.sleep(0.1)
+    except KeyboardInterrupt:
+        console.print("\n[bold yellow]Stopping all agents...[/bold yellow]")
+        for name, proc in processes:
+            proc.terminate()
+            console.print(f"Stopped {name}.")
+
+if __name__ == "__main__":
+    run_agents()

@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "description": "Travel agent | travel assistant that books flights by coordinating with an airline and the user's personal assistant.",
+  "name": "travel_agent",
+  "skills": [
+    {
+      "id": "travel_booking",
+      "name": "Travel Booking Coordination",
+      "description": "Coordinates with airline and personal assistant to book flights; requests passport when required.",
+      "tags": [
+        "travel",
+        "booking",
+        "coordination"
+      ]
+    }
+  ],
+  "url": "http://localhost:9001",
+  "version": "1.0.0"
+}

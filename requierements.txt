@@ -1,0 +1,4 @@
+google-adk[a2a]
+rich
+httpx
+python-dotenv

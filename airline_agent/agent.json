@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "description": "Airline company agent that books flights and requires passport details to confirm.",
+  "name": "airline_agent",
+  "skills": [
+    {
+      "id": "booking",
+      "name": "Flight Booking",
+      "description": "Book flights; requires destination, date(s), and passport number.",
+      "tags": [
+        "airline",
+        "booking",
+        "travel"
+      ]
+    }
+  ],
+  "url": "http://localhost:9000",
+  "version": "1.0.0"
+}

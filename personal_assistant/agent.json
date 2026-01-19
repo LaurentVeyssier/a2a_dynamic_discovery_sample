@@ -1,0 +1,25 @@
+{
+  "capabilities": {},
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "application/json"
+  ],
+  "description": "Personal assistant that can provide user documents like passport when requested.",
+  "name": "personal_assistant",
+  "skills": [
+    {
+      "id": "doc_provider",
+      "name": "Document Provider",
+      "description": "Provides user documents such as passport numbers upon request.",
+      "tags": [
+        "documents",
+        "passport",
+        "assistant"
+      ]
+    }
+  ],
+  "url": "http://localhost:9002",
+  "version": "1.0.0"
+}
