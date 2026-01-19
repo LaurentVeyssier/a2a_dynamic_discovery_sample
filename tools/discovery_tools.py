@@ -21,24 +21,29 @@ AGENT_CARD_WELL_KNOWN_PATH = "/.well-known/agent-card.json"
 HEARTBEAT_INTERVAL = 30  # seconds
 FRONTEND_EVENT_URL = "http://localhost:8000/api/trace"
 
-def report_event(event_type: str, agent_name: str, details: Any):
+def report_event(event_type: str, target: str, details: Any):
     """
-    Report an event to the frontend backend.
-    Sends a POST request to the local frontend backend.
+    Report an event to the frontend backend in a background thread.
     """
-    try:
-        # Use a simple synchronous POST for simplicity in this dev environment
-        # In production, this would be async or backgrounded
-        with httpx.Client() as client:
-            client.post(FRONTEND_EVENT_URL, json={
-                "type": event_type,
-                "agent": agent_name,
-                "details": details,
-                "timestamp": time.time()
-            }, timeout=0.5)
-    except Exception:
-        # Silently fail if frontend is not running
-        pass
+    initiator = os.getenv("AGENT_NAME", "SYSTEM")
+    
+    def _do_report():
+        try:
+            with httpx.Client() as client:
+                data = {
+                    "type": event_type,
+                    "initiator": initiator,
+                    "target": target,
+                    "details": details,
+                    "timestamp": time.time()
+                }
+                resp = client.post(FRONTEND_EVENT_URL, json=data, timeout=2.0)
+                if resp.status_code != 200:
+                    console.print(f"[bold red]Event report failed (HTTP {resp.status_code}): {event_type}[/bold red]")
+        except Exception as e:
+            console.print(f"[bold red]Event report error: {e} ({event_type})[/bold red]")
+            
+    threading.Thread(target=_do_report, daemon=True).start()
 
 class RendezvousRegistry:
     """Manages agent registration and discovery via Cloudflare Rendezvous Agent."""
@@ -104,7 +109,7 @@ async def discovery_agent_tool(query: str) -> str:
         A formatted string listing matching agents and their card URLs.
     """
     matches = await registry.find_agents(query)
-    report_event("discovery", "system", {"query": query, "results": [m['name'] for m in matches]})
+    report_event("discovery", "SYSTEM", {"query": query, "results": [m['name'] for m in matches]})
     if not matches:
         return f"No agent found for query: {query}"
     
@@ -134,7 +139,7 @@ async def handshake_tool(agent_name: str) -> str:
                 card_data = response.json()
                 card_data['__url__'] = agent['url']
                 console.print(f"Handshake successful with [bold yellow]{agent_name.capitalize()}[/bold yellow]")
-                report_event("handshake", agent_name, {"status": "success"})
+                report_event("handshake", agent_name.replace('_', ' ').upper(), {"status": "success"})
                 return f"Handshake successful for {agent_name}. Updated Agent Card:\n{json.dumps(card_data, indent=2)}"
             else:
                 return f"Handshake failed for {agent_name}. Status code: {response.status_code}"
@@ -185,7 +190,7 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
                     return f"Agent {agent_name} returned error: {json.dumps(data['error'])}"
                 
                 result = data.get("result", {})
-                report_event("call", agent_name, {"payload": payload, "status": "success"})
+                report_event("call", agent_name.replace('_', ' ').upper(), {"payload": payload, "status": "success"})
                 history = result.get("history", [])
                 
                 response_text = "No text output found."

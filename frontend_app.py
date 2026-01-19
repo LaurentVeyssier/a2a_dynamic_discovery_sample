@@ -26,14 +26,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Queue for SSE events
-event_queue = asyncio.Queue()
+# Global state
+event_history = []
+event_counter = 0
+history_lock = asyncio.Lock()
+subscribers = set()
 
 # Constants
 PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://127.0.0.1:9002")
 
 class ChatMessage(BaseModel):
     message: str
+
+@app.get("/api/health")
+async def health():
+    """Health check endpoint."""
+    return {"status": "ok"}
 
 @app.post("/api/chat")
 async def chat(msg: ChatMessage):
@@ -86,8 +94,23 @@ async def trace(event: dict):
     Receives event reports from agents and broadcasts them via SSE.
     Receive event logs from agents and put them in the SSE queue.
     """
-    logger.info(f"Received event: {event.get('type')} from {event.get('agent')}")
-    await event_queue.put(event)
+    global event_counter
+    async with history_lock:
+        event_counter += 1
+        event['sequence'] = event_counter
+        event_history.append(event)
+        if len(event_history) > 100:
+            event_history.pop(0)
+            
+    logger.info(f"Received event {event_counter}: {event.get('type')} from {event.get('agent')}")
+    
+    # Broadcast to all active subscribers
+    for q in list(subscribers):
+        try:
+            q.put_nowait(event)
+        except Exception:
+            pass
+            
     return {"status": "ok"}
 
 @app.get("/api/events")
@@ -97,24 +120,27 @@ async def events(request: Request):
     SSE endpoint for the frontend to listen for events.
     """
     async def event_generator():
-        while True:
-            # Check if client closed connection
-            if await request.is_disconnected():
-                break
-            
-            try:
-                # Get next event from queue
-                event = await event_queue.get()
-                yield {
-                    "data": json.dumps(event)
-                }
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(f"Error in event generator: {e}")
-                yield {
-                    "data": json.dumps({"type": "error", "message": str(e)})
-                }
+        queue = asyncio.Queue()
+        subscribers.add(queue)
+        try:
+            while True:
+                if await request.is_disconnected():
+                    break
+                
+                try:
+                    event = await queue.get()
+                    yield {
+                        "data": json.dumps(event)
+                    }
+                except asyncio.CancelledError:
+                    break
+                except Exception as e:
+                    logger.error(f"Error in event generator: {e}")
+                    yield {
+                        "data": json.dumps({"type": "error", "message": str(e)})
+                    }
+        finally:
+            subscribers.remove(queue)
 
     return EventSourceResponse(event_generator())
 

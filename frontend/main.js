@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const paStatus = document.getElementById('pa-status');
 
     let isFirstEvent = true;
+    let eventList = [];
 
     // --- SSE Setup ---
     function setupSSE() {
@@ -39,26 +40,45 @@ document.addEventListener('DOMContentLoaded', () => {
             isFirstEvent = false;
         }
 
-        const item = document.createElement('div');
-        item.className = `flow-item ${event.type}`;
+        // Add to list if not already present (based on sequence)
+        if (!eventList.some(e => e.sequence === event.sequence)) {
+            eventList.push(event);
+            // Sort by sequence descending (newest first for timeline)
+            eventList.sort((a, b) => b.sequence - a.sequence);
+            renderTimeline();
+        }
+    }
 
-        let icon = 'fa-info-circle';
-        if (event.type === 'discovery') icon = 'fa-search';
-        if (event.type === 'handshake') icon = 'fa-handshake';
-        if (event.type === 'call') icon = 'fa-arrow-right';
+    function renderTimeline() {
+        flowTimeline.innerHTML = '';
+        eventList.forEach(event => {
+            const item = document.createElement('div');
+            item.className = `flow-item ${event.type}`;
 
-        const time = new Date(event.timestamp * 1000).toLocaleTimeString();
+            let icon = 'fa-info-circle';
+            if (event.type === 'discovery') icon = 'fa-search';
+            if (event.type === 'handshake') icon = 'fa-handshake';
+            if (event.type === 'call') icon = 'fa-arrow-right';
 
-        item.innerHTML = `
-            <div class="type">
-                <i class="fas ${icon}"></i>
-                ${event.type} • ${time}
-            </div>
-            <div class="agent">${event.agent === 'system' ? 'System Discovery' : event.agent.replace('_', ' ').toUpperCase()}</div>
-            <div class="details">${formatDetails(event)}</div>
-        `;
+            const time = new Date(event.timestamp * 1000).toLocaleTimeString();
 
-        flowTimeline.prepend(item);
+            let context = '';
+            if (event.type === 'discovery') {
+                context = `<span class="initiator">${event.initiator}</span> searching <span class="target">${event.target}</span>`;
+            } else {
+                context = `<span class="initiator">${event.initiator}</span> <i class="fas fa-long-arrow-alt-right"></i> <span class="target">${event.target}</span>`;
+            }
+
+            item.innerHTML = `
+                <div class="type">
+                    <i class="fas ${icon}"></i>
+                    ${event.type.toUpperCase()} • ${time} • #${event.sequence}
+                </div>
+                <div class="agent">${context}</div>
+                <div class="details">${formatDetails(event)}</div>
+            `;
+            flowTimeline.appendChild(item);
+        });
     }
 
     function formatDetails(event) {
@@ -69,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `Status: ${event.details.status}`;
         }
         if (event.type === 'call') {
-            return `Payload: ${event.details.payload.substring(0, 50)}${event.details.payload.length > 50 ? '...' : ''}`;
+            return `Payload: ${event.details.payload.substring(0, 100)}${event.details.payload.length > 100 ? '...' : ''}`;
         }
         return JSON.stringify(event.details);
     }
@@ -120,13 +140,13 @@ document.addEventListener('DOMContentLoaded', () => {
     clearFlowBtn.addEventListener('click', () => {
         flowTimeline.innerHTML = '<div class="empty-state"><i class="fas fa-satellite-dish"></i><p>Waiting for agent activity...</p></div>';
         isFirstEvent = true;
+        eventList = [];
     });
 
     // Check PA Agent status
     async function checkPAStatus() {
         try {
-            // Simple check - in reality, we'd have a health endpoint
-            const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ message: 'ping' }) });
+            const res = await fetch('/api/health');
             if (res.ok) paStatus.classList.add('active');
             else paStatus.classList.remove('active');
         } catch {

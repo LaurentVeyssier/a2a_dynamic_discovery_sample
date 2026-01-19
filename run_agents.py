@@ -29,6 +29,10 @@ def run_agents():
         
         console.print(f"Starting [bold cyan]{agent['name']}[/bold cyan] on port {agent['port']}...")
         
+        # Prepare environment with agent name
+        agent_env = os.environ.copy()
+        agent_env["AGENT_NAME"] = agent["name"].replace("_", " ").upper()
+        
         # Start the process. Using a separate shell on Windows to see output if needed, 
         # but here we'll just pipe it to keep it clean.
         process = subprocess.Popen(
@@ -37,7 +41,7 @@ def run_agents():
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            env=os.environ.copy()
+            env=agent_env
         )
         processes.append((agent["name"], process))
         
