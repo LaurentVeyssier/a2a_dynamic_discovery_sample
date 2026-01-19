@@ -26,7 +26,7 @@ def report_event(event_type: str, target: str, details: Any, initiator: Optional
     Report an event to the frontend backend in a background thread.
     """
     if initiator is None:
-        initiator = os.getenv("AGENT_NAME", "SYSTEM")
+        initiator = os.getenv("AGENT_NAME", "REGISTRY")
     
     def _do_report():
         try:
@@ -110,7 +110,7 @@ async def discovery_agent_tool(query: str) -> str:
         A formatted string listing matching agents and their card URLs.
     """
     matches = await registry.find_agents(query)
-    report_event("discovery", "SYSTEM", {"query": query, "results": [m['name'] for m in matches]})
+    report_event("discovery", "REGISTRY", {"query": query, "results": [m['name'] for m in matches]})
     if not matches:
         return f"No agent found for query: {query}"
     
@@ -209,7 +209,7 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
                 
                 # Report response back to initiator
                 # We swap these so the UI shows: [Requester] <- [Responder]
-                report_event("response", target_name, {"payload": response_text, "status": "success"}, initiator=os.getenv("AGENT_NAME", "SYSTEM"))
+                report_event("response", target_name, {"payload": response_text, "status": "success"}, initiator=os.getenv("AGENT_NAME", "REGISTRY"))
                 
                 console.print(f"Remote agent [bold green]{agent_name.capitalize()}[/bold green] response received.")
                 return response_text
