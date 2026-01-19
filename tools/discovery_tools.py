@@ -189,6 +189,7 @@ def register_to_rendezvous(agent_card_path: str):
     
     Args:
         agent_card_path: Absolute path to the agent.json file.
+        
     """
     if not os.path.exists(agent_card_path):
         console.print(f"[bold red]Error:[/bold red] Agent card not found at {agent_card_path}")
