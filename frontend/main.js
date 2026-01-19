@@ -59,12 +59,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (event.type === 'discovery') icon = 'fa-search';
             if (event.type === 'handshake') icon = 'fa-handshake';
             if (event.type === 'call') icon = 'fa-arrow-right';
+            if (event.type === 'response') icon = 'fa-arrow-left';
 
             const time = new Date(event.timestamp * 1000).toLocaleTimeString();
 
             let context = '';
             if (event.type === 'discovery') {
                 context = `<span class="initiator">${event.initiator}</span> searching <span class="target">${event.target}</span>`;
+            } else if (event.type === 'response') {
+                context = `<span class="initiator">${event.target}</span> <i class="fas fa-long-arrow-alt-right"></i> <span class="target">${event.initiator}</span>`;
             } else {
                 context = `<span class="initiator">${event.initiator}</span> <i class="fas fa-long-arrow-alt-right"></i> <span class="target">${event.target}</span>`;
             }
@@ -88,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (event.type === 'handshake') {
             return `Status: ${event.details.status}`;
         }
-        if (event.type === 'call') {
+        if (event.type === 'call' || event.type === 'response') {
             return `Payload: ${event.details.payload.substring(0, 100)}${event.details.payload.length > 100 ? '...' : ''}`;
         }
         return JSON.stringify(event.details);

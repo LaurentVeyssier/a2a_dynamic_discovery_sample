@@ -21,11 +21,12 @@ AGENT_CARD_WELL_KNOWN_PATH = "/.well-known/agent-card.json"
 HEARTBEAT_INTERVAL = 30  # seconds
 FRONTEND_EVENT_URL = "http://localhost:8000/api/trace"
 
-def report_event(event_type: str, target: str, details: Any):
+def report_event(event_type: str, target: str, details: Any, initiator: Optional[str] = None):
     """
     Report an event to the frontend backend in a background thread.
     """
-    initiator = os.getenv("AGENT_NAME", "SYSTEM")
+    if initiator is None:
+        initiator = os.getenv("AGENT_NAME", "SYSTEM")
     
     def _do_report():
         try:
@@ -181,6 +182,11 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
         "id": 1
     }
     console.print(f"Calling remote agent: [bold yellow]{agent_name.capitalize()}[/bold yellow] with payload: [italic]{payload[:50]}...[/italic]")
+    
+    # Report call BEFORE executing it
+    target_name = agent_name.replace('_', ' ').upper()
+    report_event("call", target_name, {"payload": payload, "status": "pending"})
+    
     try:
         async with httpx.AsyncClient() as client:
             response = await client.post(agent_url, json=rpc_payload, timeout=60.0)
@@ -190,7 +196,6 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
                     return f"Agent {agent_name} returned error: {json.dumps(data['error'])}"
                 
                 result = data.get("result", {})
-                report_event("call", agent_name.replace('_', ' ').upper(), {"payload": payload, "status": "success"})
                 history = result.get("history", [])
                 
                 response_text = "No text output found."
@@ -201,6 +206,10 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
                         if text_parts:
                             response_text = "\n".join(text_parts)
                             break
+                
+                # Report response back to initiator
+                # We swap these so the UI shows: [Requester] <- [Responder]
+                report_event("response", target_name, {"payload": response_text, "status": "success"}, initiator=os.getenv("AGENT_NAME", "SYSTEM"))
                 
                 console.print(f"Remote agent [bold green]{agent_name.capitalize()}[/bold green] response received.")
                 return response_text
