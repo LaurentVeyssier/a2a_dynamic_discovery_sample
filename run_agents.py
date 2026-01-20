@@ -22,7 +22,7 @@ def get_uvicorn_command(module_path: str, port: int):
         # If uv exists, use your preferred high-speed command
         return [
             "uv", "run", "uvicorn", module_path,
-            "--host", "0.0.0.0",
+            "--host", "127.0.0.1",
             "--port", str(port),
         ]
     else:
@@ -30,7 +30,7 @@ def get_uvicorn_command(module_path: str, port: int):
         # -m uvicorn ensures it uses the version installed in requirements.txt
         return [
             sys.executable, "-m", "uvicorn", module_path,
-            "--host", "0.0.0.0",
+            "--host", "127.0.0.1",
             "--port", str(port),
             "--timeout-keep-alive", "20", # Increase timeout
             "--no-access-log", # Disable access log
