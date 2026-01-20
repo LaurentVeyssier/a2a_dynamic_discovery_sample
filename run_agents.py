@@ -32,6 +32,7 @@ def get_uvicorn_command(module_path: str, port: int):
             sys.executable, "-m", "uvicorn", module_path,
             "--host", "0.0.0.0",
             "--port", str(port),
+            "--timeout-keep-alive", "20", # Increase timeout
             "--workers", "1"  # Crucial for staying under 512MB RAM
         ]
 
@@ -68,7 +69,7 @@ def run_agents():
         processes.append((agent["name"], process))
         
         # Short sleep to let the server start and register
-        time.sleep(0.5)
+        time.sleep(2)
 
     console.print("\n[bold green]All agents are running![/bold green]")
     console.print("Press Ctrl+C to stop all agents.\n")
