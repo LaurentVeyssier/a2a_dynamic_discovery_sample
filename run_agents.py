@@ -1,4 +1,5 @@
 import subprocess
+import shutil
 import time
 import sys
 import os
@@ -12,6 +13,27 @@ AGENTS = [
     {"name": "personal_assistant", "path": "personal_assistant", "port": 9002},
 ]
 
+
+def get_uvicorn_command(module_path: str, port: int):
+    # 1. Check if 'uv' is installed on the system
+    uv_path = shutil.which("uv")
+    
+    if uv_path:
+        # If uv exists, use your preferred high-speed command
+        return [
+            "uv", "run", "uvicorn", module_path,
+            "--host", "127.0.0.1",
+            "--port", str(port),
+        ]
+    else:
+        # Fallback for Koyeb/Render: use the standard python interpreter
+        # -m uvicorn ensures it uses the version installed in requirements.txt
+        return [
+            sys.executable, "-m", "uvicorn", module_path,
+            "--host", "127.0.0.1",
+            "--port", str(port),
+        ]
+
 def run_agents():
     processes = []
     
@@ -21,11 +43,7 @@ def run_agents():
         # Construct the uvicorn command
         # Format: uvicorn <folder>.<file_basename>:a2a_app
         module_path = f"{agent['path']}.agent:a2a_app"
-        cmd = [
-            "uv", "run", "uvicorn", module_path,
-            "--host", "localhost",
-            "--port", str(agent["port"]),
-        ]
+        cmd = get_uvicorn_command(module_path, agent["port"])
         
         console.print(f"Starting [bold cyan]{agent['name']}[/bold cyan] on port {agent['port']}...")
         
