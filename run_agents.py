@@ -70,7 +70,7 @@ def run_agents():
         processes.append((agent["name"], process))
         
         # Short sleep to let the server start and register
-        time.sleep(2)
+        time.sleep(6)
 
     console.print("\n[bold green]All agents are running![/bold green]")
     console.print("Press Ctrl+C to stop all agents.\n")
@@ -86,7 +86,7 @@ def run_agents():
                 if proc.poll() is not None:
                     console.print(f"[bold red]Process {name} exited with code {proc.returncode}[/bold red]")
                     return
-            time.sleep(1)
+            time.sleep(4)
     except KeyboardInterrupt:
         console.print("\n[bold yellow]Stopping all agents...[/bold yellow]")
         for name, proc in processes:
