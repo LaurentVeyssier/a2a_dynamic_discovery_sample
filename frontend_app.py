@@ -33,7 +33,7 @@ history_lock = asyncio.Lock()
 subscribers = set()
 
 # Constants
-PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://localhost:9002")
+PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://127.0.0.1:9002")
 
 class ChatMessage(BaseModel):
     message: str

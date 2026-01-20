@@ -22,7 +22,7 @@ def get_uvicorn_command(module_path: str, port: int):
         # If uv exists, use your preferred high-speed command
         return [
             "uv", "run", "uvicorn", module_path,
-            "--host", "localhost",
+            "--host", "0.0.0.0",
             "--port", str(port),
         ]
     else:
@@ -30,7 +30,7 @@ def get_uvicorn_command(module_path: str, port: int):
         # -m uvicorn ensures it uses the version installed in requirements.txt
         return [
             sys.executable, "-m", "uvicorn", module_path,
-            "--host", "localhost",
+            "--host", "0.0.0.0",
             "--port", str(port),
             "--workers", "1"  # Crucial for staying under 512MB RAM
         ]
@@ -43,7 +43,6 @@ def run_agents():
     for agent in AGENTS:
         # Construct the uvicorn command
         # Format: uvicorn <folder>.<file_basename>:a2a_app
-        #module_path = f"{agent['path']}.agent:a2a_app"
 
         # Convert file paths (agents/travel_agent) to python imports (agents.travel_agent)
         clean_path = agent['path'].replace("/", ".").replace("\\", ".")
