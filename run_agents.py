@@ -30,11 +30,12 @@ def get_uvicorn_command(module_path: str, port: int):
         # -m uvicorn ensures it uses the version installed in requirements.txt
         return [
             sys.executable, "-m", "uvicorn", module_path,
-            "--host", "127.0.0.1",
-            "--port", str(port),
-            "--timeout-keep-alive", "20", # Increase timeout
-            "--no-access-log", # Disable access log
-            #"--workers", "1"  # Crucial for staying under 512MB RAM
+            "--host", "0.0.0.0", # Binding to all interfaces is safer in containers
+            "--port", str(port), # Ensure only one worker to save RAM
+            "--timeout-keep-alive", "60", # Give the worker more time to "pong" back
+            "--no-access-log", # Save CPU/IO by not logging every ping
+            "--log-level", "info",
+            "--workers", "1"  # Crucial for staying under 512MB RAM
         ]
 
 def run_agents():
@@ -70,7 +71,7 @@ def run_agents():
         processes.append((agent["name"], process))
         
         # Short sleep to let the server start and register
-        time.sleep(6)
+        time.sleep(10)
 
     console.print("\n[bold green]All agents are running![/bold green]")
     console.print("Press Ctrl+C to stop all agents.\n")
@@ -86,7 +87,7 @@ def run_agents():
                 if proc.poll() is not None:
                     console.print(f"[bold red]Process {name} exited with code {proc.returncode}[/bold red]")
                     return
-            time.sleep(4)
+            time.sleep(0.1)
     except KeyboardInterrupt:
         console.print("\n[bold yellow]Stopping all agents...[/bold yellow]")
         for name, proc in processes:
