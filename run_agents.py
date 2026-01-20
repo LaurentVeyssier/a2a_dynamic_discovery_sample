@@ -33,7 +33,8 @@ def get_uvicorn_command(module_path: str, port: int):
             "--host", "0.0.0.0",
             "--port", str(port),
             "--timeout-keep-alive", "20", # Increase timeout
-            "--workers", "1"  # Crucial for staying under 512MB RAM
+            "--no-access-log", # Disable access log
+            #"--workers", "1"  # Crucial for staying under 512MB RAM
         ]
 
 def run_agents():
