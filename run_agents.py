@@ -23,7 +23,7 @@ def run_agents():
         module_path = f"{agent['path']}.agent:a2a_app"
         cmd = [
             "uv", "run", "uvicorn", module_path,
-            "--host", "127.0.0.1",
+            "--host", "localhost",
             "--port", str(agent["port"]),
         ]
         

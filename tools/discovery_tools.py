@@ -9,6 +9,9 @@ import threading
 import time
 from typing import Dict, Any, Optional, List
 from rich.console import Console
+from dotenv import load_dotenv
+
+load_dotenv()
 
 warnings.filterwarnings("ignore", category=UserWarning, module="google.adk.*")
 
@@ -16,10 +19,10 @@ console = Console()
 logger = logging.getLogger(__name__)
 
 # Constants
-RENDEZVOUS_AGENT_URL = "https://rendezvous-agent.lveyssier.workers.dev"
+RENDEZVOUS_AGENT_URL = os.getenv("RENDEZVOUS_AGENT_URL", "https://rendezvous-agent.lveyssier.workers.dev")
 AGENT_CARD_WELL_KNOWN_PATH = "/.well-known/agent-card.json"
 HEARTBEAT_INTERVAL = 30  # seconds
-FRONTEND_EVENT_URL = "http://localhost:8000/api/trace"
+FRONTEND_EVENT_URL = os.getenv("FRONTEND_EVENT_URL", "http://localhost:8000/api/trace")
 
 def report_event(event_type: str, target: str, details: Any, initiator: Optional[str] = None):
     """
@@ -246,7 +249,7 @@ def register_to_rendezvous(agent_card_path: str):
         with httpx.Client() as client:
             resp = client.post(f"{RENDEZVOUS_AGENT_URL}/register", json=agent_card, timeout=10.0)
             if resp.status_code == 200:
-                print(f"****** Agent {agent_id} registered successfully. ******")
+                print(f"** Agent {agent_id} registered successfully. **")
             else:
                 print(f"Agent {agent_id} registration failed: {resp.status_code}")
     except Exception as e:
@@ -268,4 +271,4 @@ def register_to_rendezvous(agent_card_path: str):
 
     thread = threading.Thread(target=run_heartbeat, daemon=True)
     thread.start()
-    console.print(f"***** Heartbeat thread started for [bold cyan]{agent_id}[/bold cyan].*****")
+    console.print(f"** Heartbeat thread started for [bold cyan]{agent_id}[/bold cyan]. **")

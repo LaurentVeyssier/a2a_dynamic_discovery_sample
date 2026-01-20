@@ -14,3 +14,4 @@ wheels/
 
 # others
 .adk
+test_e2e.py

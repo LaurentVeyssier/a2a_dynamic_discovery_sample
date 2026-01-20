@@ -33,7 +33,7 @@ history_lock = asyncio.Lock()
 subscribers = set()
 
 # Constants
-PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://127.0.0.1:9002")
+PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://localhost:9002")
 
 class ChatMessage(BaseModel):
     message: str
@@ -116,7 +116,7 @@ async def trace(event: dict):
 @app.get("/api/events")
 async def events(request: Request):
     """
-    This is the SSE (Server-Sent Events) endpoint for the frontend
+    This is the SSE (Server-Sent Events) endpoint for the frontend.
     SSE endpoint for the frontend to listen for events.
     """
     async def event_generator():
