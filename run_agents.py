@@ -32,6 +32,7 @@ def get_uvicorn_command(module_path: str, port: int):
             sys.executable, "-m", "uvicorn", module_path,
             "--host", "127.0.0.1",
             "--port", str(port),
+            "--workers", "1"  # Crucial for staying under 512MB RAM
         ]
 
 def run_agents():
