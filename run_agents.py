@@ -57,6 +57,8 @@ def run_agents():
         # Prepare environment with agent name
         agent_env = os.environ.copy()
         agent_env["AGENT_NAME"] = agent["name"].replace("_", " ").upper()
+        # Python to run in unbuffered I/O mode. stdout and stderr are unbuffered. Print() appears immediately.
+        agent_env["PYTHONUNBUFFERED"] = "1"
         
         # Start the process. Using a separate shell on Windows to see output if needed, 
         # but here we'll just pipe it to keep it clean.

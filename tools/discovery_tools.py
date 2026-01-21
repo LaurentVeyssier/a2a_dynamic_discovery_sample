@@ -237,7 +237,7 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
         },
         "id": 1
     }
-    console.print(f"Calling remote agent: [bold yellow]{agent_name.capitalize()}[/bold yellow] with payload: [italic]{payload[:50]}...[/italic]")
+    console.print(f"Calling remote agent: [bold yellow]{agent_name.capitalize()}[/bold yellow] with payload: [italic]{payload[:100]}...[/italic]")
     
     # Report call BEFORE executing it
     target_name = agent_name.replace('_', ' ').upper()

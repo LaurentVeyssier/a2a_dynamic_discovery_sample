@@ -4,6 +4,7 @@ import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="google.adk.*")
 from google.adk.agents.llm_agent import Agent
 from google.genai import types
+from google.adk.models import Gemini
 from dotenv import load_dotenv
 # Add parent directory to sys.path to allow importing discovery_tools
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -17,9 +18,17 @@ load_dotenv()
 agent_card_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "agent.json"))
 register_to_rendezvous(agent_card_path)
 
+# Define the retry configuration
+retry_config = types.HttpRetryOptions(
+    attempts=3,          # Max number of retries
+    initial_delay=2,     # Initial wait in seconds
+    exp_base=2,          # Exponential multiplier (2s, 4s, 8s...)
+    http_status_codes=[429, 500, 503]
+)
+
 # Travel Agent that coordinates between requester (personal assistant) and airline
 root_agent = Agent(
-    model="gemini-2.0-flash",
+    model=Gemini(model="gemini-2.0-flash", retry_options=retry_config),
     name="travel_agent",
     description="Travel agent that books flights by coordinating with an airline and the user's personal assistant.",
     instruction=(

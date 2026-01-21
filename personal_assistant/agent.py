@@ -1,5 +1,6 @@
 from google.adk.agents.llm_agent import Agent
 from google.genai import types
+from google.adk.models import Gemini
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, module="google.adk.*")
 from rich.console import Console
@@ -26,8 +27,16 @@ def get_passport() -> str:
     console.print("FUNC get_passport called by PERSONAL ASSISTANT AGENT", style="bold yellow")
     return "PA-123456789"
 
+# Define the retry configuration
+retry_config = types.HttpRetryOptions(
+    attempts=3,          # Max number of retries
+    initial_delay=2,     # Initial wait in seconds
+    exp_base=2,          # Exponential multiplier (2s, 4s, 8s...)
+    http_status_codes=[429, 500, 503]
+)
+
 root_agent = Agent(
-    model="gemini-2.0-flash",
+    model=Gemini(model="gemini-2.0-flash", retry_options=retry_config),
     name="personal_assistant",
     description="Personal assistant that helps the user with their travel needs.",
     instruction=(

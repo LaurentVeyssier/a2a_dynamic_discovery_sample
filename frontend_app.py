@@ -65,7 +65,7 @@ async def chat(msg: ChatMessage):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(PA_AGENT_URL, json=rpc_payload, timeout=30.0)
+            response = await client.post(PA_AGENT_URL, json=rpc_payload, timeout=120.0)
             if response.status_code == 200:
                 data = response.json()
                 if "error" in data:
