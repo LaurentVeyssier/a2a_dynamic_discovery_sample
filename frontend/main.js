@@ -191,10 +191,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateStr = targetDate.toISOString().split('T')[0];
 
         return [
-            `I need a reservation for Tokyo on ${dateStr}`,
             `I want to book a trip to Paris on ${dateStr}`,
-            `Please arrange one hotel night in Madrid on ${dateStr}`,
-            `I plan a trip to New York City on ${dateStr}. Organize the plane and the hotel please.`
+            `I need a reservation for Tokyo on ${dateStr}`,
+            `Arrange one hotel night in Madrid on ${dateStr}`,
+            `I plan a trip to New York City on ${dateStr}. Organize the plane and the hotel.`
         ];
     }
 });
