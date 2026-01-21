@@ -74,8 +74,13 @@ body {
 }
 
 @keyframes move {
-    from { transform: translate(0, 0) scale(1); }
-    to { transform: translate(50px, 50px) scale(1.1); }
+    from {
+        transform: translate(0, 0) scale(1);
+    }
+
+    to {
+        transform: translate(50px, 50px) scale(1.1);
+    }
 }
 
 .app-container {
@@ -218,13 +223,28 @@ main {
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-.flow-item.discovery { border-left: 4px solid var(--accent-discovery); }
-.flow-item.handshake { border-left: 4px solid var(--accent-handshake); }
-.flow-item.call { border-left: 4px solid var(--accent-call); }
+.flow-item.discovery {
+    border-left: 4px solid var(--accent-discovery);
+}
+
+.flow-item.handshake {
+    border-left: 4px solid var(--accent-handshake);
+}
+
+.flow-item.call {
+    border-left: 4px solid var(--accent-call);
+}
 
 .flow-item .type {
     font-size: 10px;
@@ -237,9 +257,17 @@ main {
     gap: 6px;
 }
 
-.discovery .type { color: var(--accent-discovery); }
-.handshake .type { color: var(--accent-handshake); }
-.call .type { color: var(--accent-call); }
+.discovery .type {
+    color: var(--accent-discovery);
+}
+
+.handshake .type {
+    color: var(--accent-handshake);
+}
+
+.call .type {
+    color: var(--accent-call);
+}
 
 .flow-item .agent {
     font-size: 14px;
@@ -267,8 +295,13 @@ main {
     flex-direction: column;
 }
 
-.message.user { align-items: flex-end; }
-.message.assistant { align-items: flex-start; }
+.message.user {
+    align-items: flex-end;
+}
+
+.message.assistant {
+    align-items: flex-start;
+}
 
 .message-bubble {
     max-width: 80%;
@@ -368,9 +401,35 @@ main {
     main {
         flex-direction: column;
     }
+
     .app-container {
         width: 100vw;
         height: 100vh;
         border-radius: 0;
     }
+}
+
+/* Query Suggestions */
+.query-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+
+.suggestion-chip {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.suggestion-chip:hover {
+    background: rgba(45, 55, 72, 0.8);
+    color: var(--text-primary);
+    border-color: var(--accent-assistant);
 }

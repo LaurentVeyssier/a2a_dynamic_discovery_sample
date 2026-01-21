@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const flowTimeline = document.getElementById('flow-timeline');
     const clearFlowBtn = document.getElementById('clear-flow');
     const sseStatus = document.getElementById('sse-status');
+
     const paStatus = document.getElementById('pa-status');
+    const querySuggestions = document.getElementById('query-suggestions');
 
     let isFirstEvent = true;
     let eventList = [];
@@ -127,6 +129,8 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             typingIndicator.remove();
             addMessage(`Connection error: ${err.message}`, 'assistant');
+        } finally {
+            renderSuggestions();
         }
     });
 
@@ -157,7 +161,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
     setupSSE();
     checkPAStatus();
+    renderSuggestions();
     setInterval(checkPAStatus, 10000);
+
+    // --- Suggestion Logic ---
+    function renderSuggestions() {
+        querySuggestions.innerHTML = '';
+        const suggestions = generateSuggestions();
+
+        suggestions.forEach(text => {
+            const chip = document.createElement('div');
+            chip.className = 'suggestion-chip';
+            chip.textContent = text;
+            chip.addEventListener('click', () => {
+                userInput.value = text;
+                chatForm.dispatchEvent(new Event('submit')); // Trigger submit logic
+            });
+            querySuggestions.appendChild(chip);
+        });
+    }
+
+    function generateSuggestions() {
+        // Today + 10 days
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 10);
+        const dateStr = targetDate.toISOString().split('T')[0];
+
+        return [
+            `I need a reservation for Tokyo on ${dateStr}`,
+            `I want to book a trip to Paris on ${dateStr}`,
+            `Please arrange one hotel night in Madrid on ${dateStr}`,
+            `I plan a trip to New York City on ${dateStr}. Organize the plane and the hotel please.`
+        ];
+    }
 });
