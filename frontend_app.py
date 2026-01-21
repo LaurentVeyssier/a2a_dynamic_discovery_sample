@@ -72,6 +72,12 @@ async def chat(msg: ChatMessage):
                     return {"error": data["error"]}
                 
                 result = data.get("result", {})
+
+                # 1. Check if the agent gave a direct response text immediately
+                if "text" in result:
+                    return {"response": result["text"]}
+                
+                # 2. Check if the agent gave a history of messages
                 history = result.get("history", [])
                 
                 response_text = "No response from agent."

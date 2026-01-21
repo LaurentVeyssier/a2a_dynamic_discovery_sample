@@ -78,18 +78,43 @@ class RendezvousRegistry:
             logger.error(f"Error fetching agents: {e}")
             return []
 
-    async def find_agents(self, query: str) -> List[Dict[str, Any]]:
-        """Find agents matching the query based on name, description, or skills."""
-        agents = await self.get_all_agents()
-        query = query.lower()
-        matches = []
-        for agent in agents:
-            name = agent.get('name', '').lower()
-            description = agent.get('description', '').lower()
-            skills = json.dumps(agent.get('skills', [])).lower()
+    # KEEP FOR REFERENCE - OLD VERSION WITH EXACT MATCH LOGIC
+    # async def find_agents(self, query: str) -> List[Dict[str, Any]]:
+    #     """Find agents matching the query based on name, description, or skills."""
+    #     agents = await self.get_all_agents()
+    #     query = query.lower()
+    #     matches = []
+    #     for agent in agents:
+    #         name = agent.get('name', '').lower()
+    #         description = agent.get('description', '').lower()
+    #         skills = json.dumps(agent.get('skills', [])).lower()
             
-            if query in name or query in description or query in skills:
+    #         if query in name or query in description or query in skills:
+    #             matches.append(agent)
+    #     return matches
+
+    async def find_agents(self, query: str) -> List[Dict[str, Any]]:
+        """Find agents where *all* query words appear in name, description, or skills."""
+        agents = await self.get_all_agents()
+
+        # Normalize and split query into words
+        words = [w for w in query.lower().split() if w]
+        if not words:
+            return []
+
+        matches = []
+
+        for agent in agents:
+            searchable_text = " ".join([
+                agent.get("name", ""),
+                agent.get("description", ""),
+                json.dumps(agent.get("skills", []))
+            ]).lower()
+
+            # Require ALL words to be present
+            if all(word in searchable_text for word in words):
                 matches.append(agent)
+
         return matches
 
     async def get_agent_by_name(self, name: str) -> Optional[Dict[str, Any]]:
@@ -99,6 +124,7 @@ class RendezvousRegistry:
             if agent.get('name') == name:
                 return agent
         return None
+
 
 # Global registry instance
 registry = RendezvousRegistry()
