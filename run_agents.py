@@ -78,7 +78,7 @@ def run_agents():
         # longer sleep to let the server start and register if running on Koyeb
         else:
             #time.sleep(10)
-            time.sleep(1)
+            time.sleep(2)
 
     console.print("\n[bold green]All agents are running![/bold green]")
     console.print("Press Ctrl+C to stop all agents.\n")
