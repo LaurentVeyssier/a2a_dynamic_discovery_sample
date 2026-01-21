@@ -131,14 +131,41 @@ registry = RendezvousRegistry()
 
 async def discovery_agent_tool(query: str) -> str:
     """
-    Search for an agent matching the query.
-    
+    Search for an agent that can handle a given user intent.
+
+    The query should be a short, *generic* description of the capability needed,
+    not a full user request. Use at most two broad keywords that describe the task
+    domain (e.g., "hotel", "travel", "booking"), and avoid locations, dates,
+    proper nouns, or overly specific terms that may prevent matches.
+
+    Examples:
+        - Good: "hotel", "travel booking"
+        - Bad: "hotel NYC", "hotel in New York tomorrow"
+
     Args:
-        query: maximum two keyword(s) to match against agent name, description, or skills.
+        query: One or two generic keyword(s) matching agent name, description, or skills.
+
     Returns:
         A formatted string listing matching agents and their card URLs.
+        Returns an empty result if no agents match the given keywords.
     """
     matches = await registry.find_agents(query)
+
+    # Filter out self
+    current_agent_name = os.getenv("AGENT_NAME", "")
+    
+    # Normalize names for comparison: lowercase and replace underscores with spaces
+    def normalize_name(name: str) -> str:
+        return name.lower().replace("_", " ").strip()
+        
+    normalized_current_name = normalize_name(current_agent_name)
+    
+    if normalized_current_name:
+        matches = [
+            m for m in matches 
+            if normalize_name(m.get('name', '')) != normalized_current_name
+        ]
+
     report_event("discovery", "REGISTRY", {"query": query, "results": [m['name'] for m in matches]})
     if not matches:
         return f"No agent found for query: {query}"

@@ -6,13 +6,13 @@
   "defaultOutputModes": [
     "application/json"
   ],
-  "description": "Travel agent | travel assistant that helps with travel arrangements such as booking flights, hotels, and rental cars. cannot book flights directly.",
+  "description": "Travel agent | travel assistant that helps with travel arrangements such as booking flights, hotels, and rental cars. cannot book flights, hotels, or rental cars directly.",
   "name": "travel_agent",
   "skills": [
     {
       "id": "travel_booking",
-      "name": "Travel Booking Coordination",
-      "description": "Coordinates with airline and personal assistant to book flights.",
+      "name": "Travel Planning Coordination",
+      "description": "Coordinates with airline and personal assistant to plan travel arrangements such as flights, hotels, and rental cars.",
       "tags": [
         "travel",
         "booking",

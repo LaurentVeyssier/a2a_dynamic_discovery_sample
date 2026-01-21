@@ -15,8 +15,7 @@
       "description": "Book flights; requires destination, date(s), and passport number.",
       "tags": [
         "airline",
-        "booking",
-        "travel"
+        "booking"
       ]
     }
   ],
