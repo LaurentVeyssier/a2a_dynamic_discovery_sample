@@ -433,3 +433,16 @@ main {
     color: var(--text-primary);
     border-color: var(--accent-assistant);
 }
+
+/* Title Block & Subtitle */
+.title-block {
+    display: flex;
+    flex-direction: column;
+}
+
+.app-subtitle {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin-top: 2px;
+}
