@@ -32,7 +32,7 @@ def get_uvicorn_command(module_path: str, port: int):
             sys.executable, "-m", "uvicorn", module_path,
             "--host", "0.0.0.0", # Binding to all interfaces is safer in containers
             "--port", str(port), # Ensure only one worker to save RAM
-            "--timeout-keep-alive", "60", # Give the worker more time to "pong" back
+            #"--timeout-keep-alive", "60", # Give the worker more time to "pong" back
             "--no-access-log", # Save CPU/IO by not logging every ping
             "--log-level", "info",
             "--workers", "1"  # Crucial for staying under 512MB RAM
@@ -77,7 +77,8 @@ def run_agents():
             time.sleep(0.5)
         # longer sleep to let the server start and register if running on Koyeb
         else:
-            time.sleep(10)
+            #time.sleep(10)
+            time.sleep(1)
 
     console.print("\n[bold green]All agents are running![/bold green]")
     console.print("Press Ctrl+C to stop all agents.\n")

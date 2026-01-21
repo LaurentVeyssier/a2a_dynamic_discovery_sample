@@ -66,7 +66,7 @@ class RendezvousRegistry:
             
         try:
             async with httpx.AsyncClient() as client:
-                response = await client.get(f"{self.base_url}/agents", timeout=10.0)
+                response = await client.get(f"{self.base_url}/agents", timeout=1) #10.0
                 if response.status_code == 200:
                     self._agents_cache = response.json()
                     self._last_fetch = now
@@ -191,7 +191,7 @@ async def handshake_tool(agent_name: str) -> str:
     card_url = f"{agent['url'].rstrip('/')}{AGENT_CARD_WELL_KNOWN_PATH}"
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(card_url, timeout=10.0)
+            response = await client.get(card_url, timeout=1) #10.0
             if response.status_code == 200:
                 card_data = response.json()
                 card_data['__url__'] = agent['url']
@@ -245,7 +245,7 @@ async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Op
     
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.post(agent_url, json=rpc_payload, timeout=60.0)
+            response = await client.post(agent_url, json=rpc_payload, timeout=1) #60.0
             if response.status_code == 200:
                 data = response.json()
                 if "error" in data:
@@ -300,7 +300,7 @@ def register_to_rendezvous(agent_card_path: str):
     # Initial registration (Synchronous to ensure it happens before the server starts)
     try:
         with httpx.Client() as client:
-            resp = client.post(f"{RENDEZVOUS_AGENT_URL}/register", json=agent_card, timeout=10.0)
+            resp = client.post(f"{RENDEZVOUS_AGENT_URL}/register", json=agent_card, timeout=1) #10.0
             if resp.status_code == 200:
                 print(f"** Agent {agent_id} registered successfully. **")
             else:
@@ -314,10 +314,10 @@ def register_to_rendezvous(agent_card_path: str):
         while True:
             try:
                 with httpx.Client() as client:
-                    resp = client.post(f"{RENDEZVOUS_AGENT_URL}/heartbeat", json={"agent_id": agent_id}, timeout=10.0)
+                    resp = client.post(f"{RENDEZVOUS_AGENT_URL}/heartbeat", json={"agent_id": agent_id}, timeout=1) #10.0
                     if resp.status_code != 200:
                         # Re-register if heartbeat fails
-                        client.post(f"{RENDEZVOUS_AGENT_URL}/register", json=agent_card, timeout=10.0)
+                        client.post(f"{RENDEZVOUS_AGENT_URL}/register", json=agent_card, timeout=1) #10.0
             except Exception as e:
                 logger.error(f"Heartbeat error for {agent_id}: {e}")
             time.sleep(HEARTBEAT_INTERVAL)

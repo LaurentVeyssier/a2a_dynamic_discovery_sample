@@ -65,7 +65,7 @@ async def chat(msg: ChatMessage):
     
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.post(PA_AGENT_URL, json=rpc_payload, timeout=120.0)
+            response = await client.post(PA_AGENT_URL, json=rpc_payload) #, timeout=120.0)
             if response.status_code == 200:
                 data = response.json()
                 if "error" in data:
@@ -157,4 +157,4 @@ if os.path.exists(frontend_path):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("frontend_app:app", host="0.0.0.0", port=8000, timeout_keep_alive=60, workers=1)
+    uvicorn.run("frontend_app:app", host="0.0.0.0", port=8000, workers=1) #timeout_keep_alive=60,
