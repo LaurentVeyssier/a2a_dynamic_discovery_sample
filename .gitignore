@@ -15,3 +15,4 @@ wheels/
 # others
 .adk
 test_e2e.py
+HOW_TO_DEPLOY.txt

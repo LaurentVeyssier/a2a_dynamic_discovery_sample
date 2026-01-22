@@ -27,59 +27,139 @@
             <div class="logo">
                 <i class="fas fa-project-diagram"></i>
                 <div class="title-block">
-                    <h1>A2A PROTOCOL <span>MESSAGING & DISCOVERY</span></h1>
+                    <h1>A2A PROTOCOL <span class="hide-mobile">MESSAGING & DISCOVERY</span></h1>
                     <p class="app-subtitle">Visualizing real-time autonomous agent discovery, negotiation, and task
-                        execution. <span class="hide-mobile">3 autonomous agents (Personal Assistant, Travel Agent,
-                            Airline Agent) with a central registry to discover each other based on capabilities (limited
-                            for demo purpose).</span></p>
+                        execution.</p>
                 </div>
             </div>
-            <div class="status-indicators">
-                <div class="indicator" id="pa-status"><span class="dot"></span> PA Agent</div>
-                <div class="indicator" id="sse-status"><span class="dot"></span> Stream</div>
+            <div class="header-controls">
+                <div class="tab-switch">
+                    <button class="tab-btn active" data-tab="demo-view">Demo</button>
+                    <button class="tab-btn" data-tab="about-view">About</button>
+                </div>
+                <div class="status-indicators">
+                    <div class="indicator" id="pa-status"><span class="dot"></span> PA Agent</div>
+                    <div class="indicator" id="sse-status"><span class="dot"></span> Stream</div>
+                </div>
             </div>
         </header>
 
         <main>
-            <!-- Flow Section -->
-            <section class="pane flow-pane">
-                <div class="pane-header">
-                    <i class="fas fa-route"></i>
-                    <h2>Agent Communication Flow</h2>
-                    <button id="clear-flow" title="Clear flow"><i class="fas fa-trash-alt"></i></button>
-                </div>
-                <div class="flow-content" id="flow-timeline">
-                    <!-- Events will be injected here -->
-                    <div class="empty-state">
-                        <i class="fas fa-satellite-dish"></i>
-                        <p>Waiting for agent activity...</p>
+            <!-- Demo View (Flex layout) -->
+            <div id="demo-view" class="sub-view active">
+                <!-- Flow Section -->
+                <section class="pane flow-pane">
+                    <div class="pane-header">
+                        <i class="fas fa-route"></i>
+                        <h2>Event Flow</h2>
+                        <button id="clear-flow" title="Clear flow"><i class="fas fa-trash-alt"></i></button>
                     </div>
-                </div>
-            </section>
-
-            <!-- Chat Section -->
-            <section class="pane chat-pane">
-                <div class="pane-header">
-                    <i class="fas fa-comment-alt"></i>
-                    <h2>Personal Assistant</h2>
-                </div>
-                <div class="chat-content" id="chat-messages">
-                    <div class="message assistant">
-                        <div class="message-bubble">
-                            Hello! I am your A2A Personal Assistant. How can I help you today?
+                    <div class="flow-content" id="flow-timeline">
+                        <!-- Events will be injected here -->
+                        <div class="empty-state">
+                            <i class="fas fa-satellite-dish"></i>
+                            <p>Waiting for agent activity...</p>
                         </div>
                     </div>
-                </div>
-                <div class="chat-input-container">
-                    <div id="query-suggestions" class="query-suggestions"></div>
-                    <form id="chat-form">
-                        <input type="text" id="user-input" placeholder="Type your request here..." autocomplete="off">
-                        <button type="submit" id="send-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                </div>
-            </section>
+                </section>
+
+                <!-- Chat Section -->
+                <section class="pane chat-pane">
+                    <div class="pane-header">
+                        <i class="fas fa-comment-alt"></i>
+                        <h2>Personal Assistant</h2>
+                    </div>
+                    <div class="chat-content" id="chat-messages">
+                        <div class="message assistant">
+                            <div class="message-bubble">
+                                Hello! I am your A2A Personal Assistant. How can I help you today?
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-container">
+                        <div id="query-suggestions" class="query-suggestions"></div>
+                        <form id="chat-form">
+                            <input type="text" id="user-input" placeholder="Type your request here..."
+                                autocomplete="off">
+                            <button type="submit" id="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </div>
+
+            <!-- About View -->
+            <div id="about-view" class="sub-view">
+                <section class="pane about-pane">
+                    <div class="pane-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h2>About A2A Dynamic Discovery</h2>
+                    </div>
+                    <div class="about-content">
+                        <h3>Project Objective</h3>
+                        <p>This project demonstrates a multi-agent system using the <strong>Agent-to-Agent (A2A)
+                                protocol</strong> with <strong>dynamic discovery</strong> via a central rendezvous
+                            remote service hosted on <strong>cloudflare workers</strong>.
+                        </p>
+                        <p>The primary goal is to showcase how autonomous agents can <strong>dynamically discover,
+                                connect, and coordinate</strong> with each other to solve complex user requests without
+                            hardcoded dependencies.</p>
+                        </p>
+                        <p>The system is composed of 3 agents: <strong>Personal Assistant</strong>, <strong>Travel
+                                Agent</strong>, and <strong>Airline Agent</strong> with their <strong>distinct</strong>
+                            capabilities.
+                            Only the AA can book flights, the PA holds user passport number and the TA can coordinate
+                            travel arrangements. For demo purpose, no agent available to book a hotel or rentals.
+                        </p>
+                        <p>Each agent registers its <strong>A2A agentcard</strong> to a central <strong>rendezvous
+                                service</strong>, cornerstone to the <strong>dynamic discovery</strong>:
+                            An agent will query the rendezvous service to find peers with required
+                            <strong>capabilities</strong> and their <strong>A2A service endpoint</strong> (how to
+                            connect).
+                        </p>
+                        <p>Communication is <strong>standardized</strong> using A2A protocol, enabling in particular
+                            <strong>interoperability</strong> between agents with different programming languages and
+                            frameworks and <strong>long running tasks</strong> execution.
+                        </p>
+
+                        <h3>How it works</h3>
+                        <ul class="about-list">
+                            <li><strong>1. User Request:</strong> You ask the Personal Assistant (PA) to book a trip.
+                            </li>
+                            <li><strong>2. Discovery:</strong> Agents query the Rendezvous Registry to find peers with
+                                required capabilities (e.g., "plan travel", "book flight", "get passport").</li>
+                            <li><strong>3. Handshake:</strong> Agents verify each other and exchange "agent cards" to
+                                confirm capabilities.</li>
+                            <li><strong>4. Delegation:</strong> Tasks are delegated down the chain (PA -> Travel Agent
+                                ->
+                                Airline).</li>
+                            <li><strong>5. Resolution:</strong> Results propagate back up to the user.</li>
+                        </ul>
+
+                        <h3>Output Window</h3>
+                        <p>All communication events are logged in the <strong>communication observatory</strong> to
+                            provide a transparent view of the communication between agents.
+                        </p>
+
+                        <h3>Agents</h3>
+                        <div class="agent-cards">
+                            <div class="card">
+                                <i class="fas fa-user-tie"></i>
+                                <span>Personal Assistant</span>
+                            </div>
+                            <div class="card">
+                                <i class="fas fa-plane-departure"></i>
+                                <span>Travel Agent</span>
+                            </div>
+                            <div class="card">
+                                <i class="fas fa-plane"></i>
+                                <span>Airline Agent</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 

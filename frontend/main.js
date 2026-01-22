@@ -10,8 +10,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const paStatus = document.getElementById('pa-status');
     const querySuggestions = document.getElementById('query-suggestions');
 
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabViews = document.querySelectorAll('.sub-view');
+
     let isFirstEvent = true;
     let eventList = [];
+
+    // --- Tab Logic ---
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Deactivate all
+            tabBtns.forEach(b => b.classList.remove('active'));
+            tabViews.forEach(v => v.classList.remove('active'));
+
+            // Activate clicked
+            btn.classList.add('active');
+            const targetId = btn.getAttribute('data-tab');
+            document.getElementById(targetId).classList.add('active');
+        });
+    });
 
     // --- SSE Setup ---
     function setupSSE() {
