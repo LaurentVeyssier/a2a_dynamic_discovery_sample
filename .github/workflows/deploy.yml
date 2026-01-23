@@ -12,17 +12,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v5
-        with:
-          version: "latest"
-
+      
       - name: Set up Python
-        run: uv python install 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      - name: Install dependencies
-        run: uv sync --frozen  # This uses your uv.lock file perfectly
+      # We DO NOT run 'uv sync' or 'pip install' here. 
+      # We let Azure handle it during the deploy step.
 
       - name: Log in to Azure
         uses: azure/login@v1
@@ -33,3 +30,5 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'a2a-discovery-demo-app' # Use your actual Azure Web App name here
+          # This tells GitHub NOT to send the local .venv if it exists
+          package: .
