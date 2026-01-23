@@ -3,26 +3,22 @@ name: Azure Deploy
 on:
   push:
     branches:
-      - main  # Trigger every time you push to main
+      - main  # Make sure this matches your branch name
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      # We DO NOT run 'uv sync' or 'pip install' here. 
-      # We let Azure handle it during the deploy step.
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Log in to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2 # Uses the Secret you created earlier
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'a2a-discovery-demo-app' # Use your actual Azure Web App name here
-          # This tells GitHub NOT to send the local .venv if it exists
+          app-name: 'a2a-discovery-demo-app'
           package: .
