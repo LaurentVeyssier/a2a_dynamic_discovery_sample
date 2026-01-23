@@ -641,3 +641,38 @@ main {
         display: none;
     }
 }
+
+.events {
+    padding-left: 1.25rem;
+}
+
+.events li {
+    margin-bottom: 0.75rem;
+    padding-left: 1.5rem;
+    /* aligns content */
+}
+
+.label {
+    font-weight: 600;
+}
+
+.discovery {
+    color: #38bdf8;
+}
+
+.handshake {
+    color: #fbbf24;
+}
+
+.call {
+    color: #4ade80;
+}
+
+.response {
+    color: #bbb5b6ff;
+}
+
+.output {
+    margin-left: 0;
+    color: #9ca3af;
+}

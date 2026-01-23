@@ -123,6 +123,43 @@
                             frameworks and <strong>long running tasks</strong> execution.
                         </p>
 
+
+                        <h3>Event Flow Window</h3>
+                        <p>All communication events are logged in the <strong>Event Flow Observatory</strong> to
+                            provide a transparent view of the communication between agents.
+                        </p>
+
+                        -> See every `discovery`, `handshake`, `call`, and `response` Events as it happens.
+                        <ul class="events">
+                            <li>
+                                <span class="label discovery">DISCOVERY</span>: Agent searching registry.
+                                <div class="output">
+                                    Output: Details of agents capable of performing the task.
+                                </div>
+                            </li>
+
+                            <li>
+                                <span class="label handshake">HANDSHAKE</span>: Verification of a peer's status.
+                                <div class="output">
+                                    Output: Up-to-date agentcard confirming alive status and capabilities.
+                                </div>
+                            </li>
+
+                            <li>
+                                <span class="label call">CALL</span>: Task delegation between agents.
+                                <div class="output">
+                                    Output: Message sent from Requester to Responder.
+                                </div>
+                            </li>
+
+                            <li>
+                                <span class="label response">RESPONSE</span>: Result of the task delegation.
+                                <div class="output">
+                                    Output: Message sent from Responder to Requester.
+                                </div>
+                            </li>
+                        </ul>
+
                         <h3>How it works</h3>
                         <ul class="about-list">
                             <li><strong>1. User Request:</strong> You ask the Personal Assistant (PA) to book a trip.
@@ -136,11 +173,6 @@
                                 Airline).</li>
                             <li><strong>5. Resolution:</strong> Results propagate back up to the user.</li>
                         </ul>
-
-                        <h3>Output Window</h3>
-                        <p>All communication events are logged in the <strong>communication observatory</strong> to
-                            provide a transparent view of the communication between agents.
-                        </p>
 
                         <h3>Agents</h3>
                         <div class="agent-cards">
