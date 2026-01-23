@@ -28,10 +28,14 @@ To visualize this invisible negotiation, the project includes a real-time **Dash
 
 ### Features
 *   **Live Flow Timeline**: See every `discovery`, `handshake`, `call`, and `response` event as it happens.
-    *   <span style="color: #38bdf8">**DISCOVERY**</span>: Agent searching the registry. Output: Details of agents capable of performing the task.
-    *   <span style="color: #fbbf24">**HANDSHAKE**</span>: Verification of a peer's status. Output: Up-to-date agent card demonstrating the agent is alive and confirming it can perform the task.
-    *   <span style="color: #4ade80">**CALL**</span>: Task delegation between agents. Output: Message sent to the responder.
-    *   <span style="color: #bbb5b6ff">**RESPONSE**</span>: Result of the task delegation. Output: Message sent to the requester. 
+
+    | Event      | Description | Output |
+    |------------|------------|--------|
+    | 🔵   <span style="color: #38bdf8">**DISCOVERY**</span> | Agent searching the registry. | Details of agents capable of performing the task. |
+    | 🟡   <span style="color: #fbbf24">**HANDSHAKE**</span> | Verification of a peer's status. | Up-to-date agent card demonstrating the agent is alive and confirming it can perform the task. |
+    | 🟢   <span style="color: #4ade80">**CALL**</span> | Task delegation between agents. | Message sent to the responder. |
+    | ⚪   <span style="color: #bbb5b6ff">**RESPONSE**</span> | Result of the task delegation. | Message sent to the requester. |
+
 *   **Chat Interface**: Interact directly with the Personal Assistant.
 *   **Query Suggestions**: One-click chips with dynamic dates (e.g., "Today + 10 days") to quickly test scenarios.
 
