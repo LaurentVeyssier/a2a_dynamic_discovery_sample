@@ -1,10 +1,9 @@
-name: Build and Deploy Python App
+name: Azure Deploy
 
 on:
   push:
     branches:
       - main  # Trigger every time you push to main
-  workflow_dispatch: # Allows you to trigger the deployment manually
 
 jobs:
   build-and-deploy:
@@ -12,11 +11,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
 
       # We DO NOT run 'uv sync' or 'pip install' here. 
       # We let Azure handle it during the deploy step.
