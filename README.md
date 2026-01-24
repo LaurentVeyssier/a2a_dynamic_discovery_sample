@@ -98,6 +98,27 @@ The `run_agents.py` script will:
 - Each agentCard can be reached at `http://localhost:{port}/.well-known/agent-card.json`
 - Check `curl.exe <rendezvous agent endpoint>/agents` to see the agent cards of all registered agents.
 
+### technical notes
+
+You have 2 versions of the app in the github repo.
+- **version 1**: agents run on different ports (9000, 9001, 9002)
+In this approach, each agent is a separate process and has its own port. It is achieved using separate uv run uvicorn commands for each agent.
+The drawback is that it consumes more memory (each process has its own Python interpreter, etc.) and does not fit in 512MB RAM often used for deployment. 
+
+    This version can be found as this commit in the github repo: https://github.com/LaurentVeyssier/a2a_dynamic_discovery_sample/commit/a88ae24ab49377ded161dee06460b1a735675f6b. In this version, the agentcards are reachable at `http://localhost:<port>.well-known/agent-card.json`.
+
+    This approach would be the most likely to be used in production as it is more flexible and allows to scale the agents independently.
+
+- **version 2**: agents run on the same port (9000) - This is the one used to deploy the app. This is achieved with adk using a single command for all agents from the root directory: `uv run adk api_server --a2a --port 9000`.
+
+    In this approach, all agents run in the same process and share the same port. The memory footprint is much smaller (350MB in Railway to 450MB in koyeb) and it fits in 512MB RAM. 
+    
+    This version is the last commit in the github repo. In this version, the agentcards are now reachable at `http://localhost:9000/a2a/<agent_name>.well-known/agent-card.json`. The agentcards are all updated and the rendezvous registry records these endpoints. 
+    
+    This change has been done to reduce the memory footprint of the app and make it more suitable for deployment on platforms with limited resources.
+    
+    It has structural impacts on all the backend code compared to version 1, in particular the tracking of the initiator agent no longer possible using os.environ["AGENT_NAME"]. This requires to use discovery tools specific to each agent to get the initiator agent name.
+
 ## Testing
 
 Once the agents are running, you can trigger an end-to-end flight booking flow:
@@ -158,6 +179,10 @@ Each agent calls register_to_rendezvous with path to its agentcard or `agent.jso
 
 ## Live Deployment
 
-The rendezvous agent is deployed as a Cloudflare Worker.
+- The rendezvous agent is deployed as a Cloudflare Worker.
 
-The agents, the fastAPI app and the frontend are deployed on Railway. The Dashboard webapp is running live at https://a2adynamicdiscoverysample-production.up.railway.app/
+- The agents, the fastAPI app and the frontend are deployed on Koyeb at https://devoted-bobolink-laurentv-b974bbd2.koyeb.app/
+
+- It is also deployed on Railway at https://a2adynamicdiscoverysample-production.up.railway.app/
+
+
