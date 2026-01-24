@@ -10,6 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +36,7 @@ history_lock = asyncio.Lock()
 subscribers = set()
 
 # Constants
-PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://127.0.0.1:9002")
+PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://127.0.0.1:9000/a2a/personal_assistant")
 
 class ChatMessage(BaseModel):
     message: str

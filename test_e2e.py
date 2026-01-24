@@ -4,7 +4,7 @@ import json
 import asyncio
 
 async def main():
-    pa_url = "http://127.0.0.1:9002/"
+    pa_url = "http://127.0.0.1:9000/a2a/personal_assistant"
     payload = {
         "jsonrpc": "2.0",
         "method": "message/send",
@@ -12,7 +12,7 @@ async def main():
             "message": {
                 "message_id": str(uuid.uuid4()),
                 "role": "user",
-                "parts": [{"text": "I want to book a flight to Dublin on 2026-03-15. Please handle everything."}]
+                "parts": [{"text": "I want to book a flight to Dublin on 2026-05-15. Please handle everything."}]
             },
             "metadata": {}
         },

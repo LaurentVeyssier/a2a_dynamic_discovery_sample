@@ -9,14 +9,12 @@ from dotenv import load_dotenv
 # Add parent directory to sys.path to allow importing discovery_tools
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.discovery_tools import discovery_agent_tool, handshake_tool, call_remote_agent_tool, register_to_rendezvous
-from google.adk.a2a.utils.agent_to_a2a import to_a2a
+from tools.discovery_tools import get_discovery_tools
+
+# Instantiate tools with agent identity
+discovery_agent_tool, handshake_tool, call_remote_agent_tool = get_discovery_tools("travel_agent")
 
 load_dotenv()
-
-# Register agent on startup
-agent_card_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "agent.json"))
-register_to_rendezvous(agent_card_path)
 
 # Define the retry configuration
 retry_config = types.HttpRetryOptions(
@@ -54,7 +52,3 @@ root_agent = Agent(
         ]
     ),
 )
-
-# Make agent A2A-compatible
-# Use the assigned port 9001 and valid agent_card path
-a2a_app = to_a2a(root_agent, port=9001, agent_card=agent_card_path)

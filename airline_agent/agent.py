@@ -12,12 +12,10 @@ load_dotenv()
 # Add parent directory to sys.path to allow importing discovery_tools
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tools.discovery_tools import discovery_agent_tool, handshake_tool, call_remote_agent_tool, register_to_rendezvous
-from google.adk.a2a.utils.agent_to_a2a import to_a2a
+from tools.discovery_tools import get_discovery_tools
 
-# Register agent on startup
-agent_card_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "agent.json"))
-register_to_rendezvous(agent_card_path)
+# Instantiate tools with agent identity
+discovery_agent_tool, handshake_tool, call_remote_agent_tool = get_discovery_tools("airline_agent")
 
 # Tool: concrete booking endpoint with explicit arguments
 def book_flight(destination: str, date: str, passport_number: str | None = None) -> str:
@@ -72,7 +70,3 @@ root_agent = Agent(
         ]
     ),
 )
-
-# Make agent A2A-compatible
-# Use the assigned port 9000 and valid agent_card path
-a2a_app = to_a2a(root_agent, port=9000, agent_card=agent_card_path)

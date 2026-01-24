@@ -7,7 +7,7 @@ import uuid
 import os
 import threading
 import time
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple, Callable
 from rich.console import Console
 from dotenv import load_dotenv
 
@@ -24,13 +24,10 @@ AGENT_CARD_WELL_KNOWN_PATH = "/.well-known/agent-card.json"
 HEARTBEAT_INTERVAL = 30  # seconds
 FRONTEND_EVENT_URL = os.getenv("FRONTEND_EVENT_URL", "http://localhost:8000/api/trace")
 
-def report_event(event_type: str, target: str, details: Any, initiator: Optional[str] = None):
+def report_event(event_type: str, target: str, details: Any, initiator: str):
     """
     Report an event to the frontend backend in a background thread.
     """
-    if initiator is None:
-        initiator = os.getenv("AGENT_NAME", "REGISTRY")
-    
     def _do_report():
         try:
             with httpx.Client() as client:
@@ -77,22 +74,7 @@ class RendezvousRegistry:
         except Exception as e:
             logger.error(f"Error fetching agents: {e}")
             return []
-
-    # KEEP FOR REFERENCE - OLD VERSION WITH EXACT MATCH LOGIC
-    # async def find_agents(self, query: str) -> List[Dict[str, Any]]:
-    #     """Find agents matching the query based on name, description, or skills."""
-    #     agents = await self.get_all_agents()
-    #     query = query.lower()
-    #     matches = []
-    #     for agent in agents:
-    #         name = agent.get('name', '').lower()
-    #         description = agent.get('description', '').lower()
-    #         skills = json.dumps(agent.get('skills', [])).lower()
             
-    #         if query in name or query in description or query in skills:
-    #             matches.append(agent)
-    #     return matches
-
     async def find_agents(self, query: str) -> List[Dict[str, Any]]:
         """Find agents where *all* query words appear in name, description, or skills."""
         agents = await self.get_all_agents()
@@ -129,150 +111,190 @@ class RendezvousRegistry:
 # Global registry instance
 registry = RendezvousRegistry()
 
-async def discovery_agent_tool(query: str) -> str:
+def get_discovery_tools(agent_name: str) -> Tuple[Callable, Callable, Callable]:
     """
-    Search for an agent that can handle a given user intent.
-
-    The query should be a short, *generic* description of the capability needed,
-    not a full user request. Use at most two broad keywords that describe the task
-    domain (e.g., "hotel", "travel", "booking"), and avoid locations, dates,
-    proper nouns, or overly specific terms that may prevent matches.
-
-    Examples:
-        - Good: "hotel", "travel booking"
-        - Bad: "hotel NYC", "hotel in New York tomorrow"
-
-    Args:
-        query: One or two generic keyword(s) matching agent name, description, or skills.
-
-    Returns:
-        A formatted string listing matching agents and their card URLs.
-        Returns an empty result if no agents match the given keywords.
-    """
-    matches = await registry.find_agents(query)
-
-    # Filter out self
-    current_agent_name = os.getenv("AGENT_NAME", "")
+    Factory to create discovery tools bound to a specific agent identity.
+    This ensures that 'initiator' tracking works correctly even when
+    multiple agents run in the same process/environment.
     
-    # Normalize names for comparison: lowercase and replace underscores with spaces
-    def normalize_name(name: str) -> str:
-        return name.lower().replace("_", " ").strip()
+    Args:
+        agent_name: The name of the agent owning these tools (e.g. "travel_agent").
         
-    normalized_current_name = normalize_name(current_agent_name)
-    
-    if normalized_current_name:
-        matches = [
-            m for m in matches 
-            if normalize_name(m.get('name', '')) != normalized_current_name
-        ]
-
-    report_event("discovery", "REGISTRY", {"query": query, "results": [m['name'] for m in matches]})
-    if not matches:
-        return f"No agent found for query: {query}"
-    
-    result = "Found the following matching agents:\n"
-    for agent in matches:
-        result += f"- Agent: {agent['name']}\n  Description: {agent['description']}\n  URL: {agent['url']}\n"
-    return result
-
-async def handshake_tool(agent_name: str) -> str:
-    """
-    Check if an agent is up and running and retrieve its current agent card.
-    
-    Args:
-        agent_name: The name of the agent to check.
     Returns:
-        The agent's card information or an error message.
+        A tuple of (discovery_agent_tool, handshake_tool, call_remote_agent_tool)
     """
-    agent = await registry.get_agent_by_name(agent_name)
-    if not agent:
-        return f"Error: Agent '{agent_name}' not found in registry. Use discovery_agent_tool first."
     
-    card_url = f"{agent['url'].rstrip('/')}{AGENT_CARD_WELL_KNOWN_PATH}"
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(card_url, timeout=10.0)
-            if response.status_code == 200:
-                card_data = response.json()
-                card_data['__url__'] = agent['url']
-                console.print(f"Handshake successful with [bold yellow]{agent_name.capitalize()}[/bold yellow]")
-                report_event("handshake", agent_name.replace('_', ' ').upper(), {"status": "success"})
-                return f"Handshake successful for {agent_name}. Updated Agent Card:\n{json.dumps(card_data, indent=2)}"
-            else:
-                return f"Handshake failed for {agent_name}. Status code: {response.status_code}"
-    except Exception as e:
-        return f"Handshake failed for {agent_name}. Error: {str(e)}"
+    # Normalize current agent name for consistency
+    current_agent_name = agent_name
+    
+    async def discovery_agent_tool(query: str) -> str:
+        """
+        Search for an agent that can handle a given user intent.
 
-async def call_remote_agent_tool(agent_name: str, payload: str, task_context: Optional[str] = None) -> str:
-    """
-    Call a remote agent with a specific payload (task description or JSON).
-    
-    Args:
-        agent_name: The name of the agent to call.
-        payload: The input to send to the agent.
-        task_context: Optional previous context or history to include for statefulness.
-    Returns:
-        The agent's response.
-    """
-    agent_info = await registry.get_agent_by_name(agent_name)
-    if not agent_info:
-        return f"Error: Agent '{agent_name}' not found."
-    
-    agent_url = agent_info['url']
-    
-    final_text = payload
-    if task_context:
-        final_text = f"CONTEXT:\n{task_context}\n\nTASK:\n{payload}"
-    
-    rpc_payload = {
-        "jsonrpc": "2.0",
-        "method": "message/send",
-        "params": {
-            "message": {
-                "message_id": str(uuid.uuid4()),
-                "role": "user",
-                "parts": [{"text": final_text}]
+        The query should be a short, *generic* description of the capability needed,
+        not a full user request. Use at most two broad keywords that describe the task
+        domain (e.g., "hotel", "travel", "booking"), and avoid locations, dates,
+        proper nouns, or overly specific terms that may prevent matches.
+
+        Examples:
+            - Good: "hotel", "travel booking"
+            - Bad: "hotel NYC", "hotel in New York tomorrow"
+
+        Args:
+            query: One or two generic keyword(s) matching agent name, description, or skills.
+
+        Returns:
+            A formatted string listing matching agents and their card URLs.
+            Returns an empty result if no agents match the given keywords.
+        """
+        matches = await registry.find_agents(query)
+
+        # Filter out self using the injected agent_name
+        def normalize_name(name: str) -> str:
+            return name.lower().replace("_", " ").strip()
+            
+        normalized_current_name = normalize_name(current_agent_name)
+        
+        filtered_matches = []
+        if normalized_current_name:
+            filtered_matches = [
+                m for m in matches 
+                if normalize_name(m.get('name', '')) != normalized_current_name
+            ]
+        else:
+            filtered_matches = matches
+
+        report_event(
+            "discovery", 
+            "REGISTRY", 
+            {"query": query, "results": [m['name'] for m in filtered_matches]},
+            initiator=current_agent_name.replace("_", " ").upper()
+        )
+        
+        if not filtered_matches:
+            return f"No agent found for query: {query}"
+        
+        result = "Found the following matching agents:\n"
+        for agent in filtered_matches:
+            result += f"- Agent: {agent['name']}\n  Description: {agent['description']}\n  URL: {agent['url']}\n"
+        return result
+
+    async def handshake_tool(target_agent_name: str) -> str:
+        """
+        Check if an agent is up and running and retrieve its current agent card.
+        
+        Args:
+            target_agent_name: The name of the agent to check.
+        Returns:
+            The agent's card information or an error message.
+        """
+        agent = await registry.get_agent_by_name(target_agent_name)
+        if not agent:
+            return f"Error: Agent '{target_agent_name}' not found in registry. Use discovery_agent_tool first."
+        
+        card_url = f"{agent['url'].rstrip('/')}{AGENT_CARD_WELL_KNOWN_PATH}"
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(card_url, timeout=10.0)
+                if response.status_code == 200:
+                    card_data = response.json()
+                    card_data['__url__'] = agent['url']
+                    console.print(f"[{current_agent_name}] Handshake successful with [bold yellow]{target_agent_name.capitalize()}[/bold yellow]")
+                    report_event(
+                        "handshake", 
+                        target_agent_name.replace('_', ' ').upper(), 
+                        {"status": "success"},
+                        initiator=current_agent_name.replace("_", " ").upper()
+                    )
+                    return f"Handshake successful for {target_agent_name}. Updated Agent Card:\n{json.dumps(card_data, indent=2)}"
+                else:
+                    return f"Handshake failed for {target_agent_name}. Status code: {response.status_code}"
+        except Exception as e:
+            return f"Handshake failed for {target_agent_name}. Error: {str(e)}"
+
+    async def call_remote_agent_tool(target_agent_name: str, payload: str, task_context: Optional[str] = None) -> str:
+        """
+        Call a remote agent with a specific payload (task description or JSON).
+        
+        Args:
+            target_agent_name: The name of the agent to call.
+            payload: The input to send to the agent.
+            task_context: Optional previous context or history to include for statefulness.
+        Returns:
+            The agent's response.
+        """
+        agent_info = await registry.get_agent_by_name(target_agent_name)
+        if not agent_info:
+            return f"Error: Agent '{target_agent_name}' not found."
+        
+        agent_url = agent_info['url']
+        
+        final_text = payload
+        if task_context:
+            final_text = f"CONTEXT:\n{task_context}\n\nTASK:\n{payload}"
+        
+        rpc_payload = {
+            "jsonrpc": "2.0",
+            "method": "message/send",
+            "params": {
+                "message": {
+                    "message_id": str(uuid.uuid4()),
+                    "role": "user",
+                    "parts": [{"text": final_text}]
+                },
+                "metadata": {}
             },
-            "metadata": {}
-        },
-        "id": 1
-    }
-    console.print(f"Calling remote agent: [bold yellow]{agent_name.capitalize()}[/bold yellow] with payload: [italic]{payload[:100]}...[/italic]")
-    
-    # Report call BEFORE executing it
-    target_name = agent_name.replace('_', ' ').upper()
-    report_event("call", target_name, {"payload": payload, "status": "pending"})
-    
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(agent_url, json=rpc_payload, timeout=60.0)
-            if response.status_code == 200:
-                data = response.json()
-                if "error" in data:
-                    return f"Agent {agent_name} returned error: {json.dumps(data['error'])}"
-                
-                result = data.get("result", {})
-                history = result.get("history", [])
-                
-                response_text = "No text output found."
-                for item in reversed(history):
-                    if item.get("role") in ["agent", "model"] and "parts" in item:
-                        parts = item["parts"]
-                        text_parts = [p["text"] for p in parts if "text" in p]
-                        if text_parts:
-                            response_text = "\n".join(text_parts)
-                            break
-                
-                # Report response back to initiator
-                # We swap these so the UI shows: [Requester] <- [Responder]
-                report_event("response", target_name, {"payload": response_text, "status": "success"}, initiator=os.getenv("AGENT_NAME", "REGISTRY"))
-                
-                console.print(f"Remote agent [bold green]{agent_name.capitalize()}[/bold green] response received.")
-                return response_text
-            else:
-                return f"Error calling agent {agent_name}: HTTP {response.status_code} - {response.text}"
-    except Exception as e:
-        return f"Error calling agent {agent_name}: {str(e)}"
+            "id": 1
+        }
+        console.print(f"[{current_agent_name}] Calling remote agent: [bold yellow]{target_agent_name.capitalize()}[/bold yellow] with payload: [italic]{payload[:100]}...[/italic]")
+        
+        # Report call BEFORE executing it
+        target_name_display = target_agent_name.replace('_', ' ').upper()
+        initiator_display = current_agent_name.replace("_", " ").upper()
+        
+        report_event(
+            "call", 
+            target_name_display, 
+            {"payload": payload, "status": "pending"},
+            initiator=initiator_display
+        )
+        
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.post(agent_url, json=rpc_payload, timeout=60.0)
+                if response.status_code == 200:
+                    data = response.json()
+                    if "error" in data:
+                        return f"Agent {target_agent_name} returned error: {json.dumps(data['error'])}"
+                    
+                    result = data.get("result", {})
+                    history = result.get("history", [])
+                    
+                    response_text = "No text output found."
+                    for item in reversed(history):
+                        if item.get("role") in ["agent", "model"] and "parts" in item:
+                            parts = item["parts"]
+                            text_parts = [p["text"] for p in parts if "text" in p]
+                            if text_parts:
+                                response_text = "\n".join(text_parts)
+                                break
+                    
+                    # Report response back to initiator
+                    report_event(
+                        "response", 
+                        target_name_display, 
+                        {"payload": response_text, "status": "success"}, 
+                        initiator=initiator_display
+                    )
+                    
+                    console.print(f"[{current_agent_name}] Remote agent [bold green]{target_agent_name.capitalize()}[/bold green] response received.")
+                    return response_text
+                else:
+                    return f"Error calling agent {target_agent_name}: HTTP {response.status_code} - {response.text}"
+        except Exception as e:
+            return f"Error calling agent {target_agent_name}: {str(e)}"
+
+    return discovery_agent_tool, handshake_tool, call_remote_agent_tool
 
 def register_to_rendezvous(agent_card_path: str):
     """

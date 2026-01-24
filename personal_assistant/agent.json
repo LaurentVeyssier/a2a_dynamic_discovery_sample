@@ -18,10 +18,11 @@
         "passport",
         "assistant",
         "passport_number",
-        "get passport number"
+        "get passport number",
+        "passport information"
       ]
     }
   ],
-  "url": "http://127.0.0.1:9002",
+  "url": "http://127.0.0.1:9000/a2a/personal_assistant",
   "version": "1.0.0"
 }

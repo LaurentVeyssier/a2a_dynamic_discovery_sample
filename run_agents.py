@@ -5,101 +5,88 @@ import sys
 import os
 from rich.console import Console
 
+# Add current directory to path so we can import tools
+sys.path.append(os.path.abspath(os.path.dirname(__file__)))
+from tools.discovery_tools import register_to_rendezvous
+
 console = Console()
 
-AGENTS = [
-    {"name": "airline_agent", "path": "airline_agent", "port": 9000},
-    {"name": "travel_agent", "path": "travel_agent", "port": 9001},
-    {"name": "personal_assistant", "path": "personal_assistant", "port": 9002},
-]
-
-
-def get_uvicorn_command(module_path: str, port: int):
-    # 1. Check if 'uv' is installed on the system
-    uv_path = shutil.which("uv")
-    
-    if uv_path:
-        # If uv exists, use your preferred high-speed command
-        return [
-            "uv", "run", "uvicorn", module_path,
-            "--host", "127.0.0.1",
-            "--port", str(port),
-        ]
-    else:
-        # Fallback for Koyeb/Render: use the standard python interpreter
-        # -m uvicorn ensures it uses the version installed in requirements.txt
-        return [
-            sys.executable, "-m", "uvicorn", module_path,
-            "--host", "0.0.0.0", # Binding to all interfaces is safer in containers
-            "--port", str(port), # Ensure only one worker to save RAM
-            #"--timeout-keep-alive", "60", # Give the worker more time to "pong" back
-            "--no-access-log", # Save CPU/IO by not logging every ping
-            "--log-level", "info",
-            "--workers", "1"  # Crucial for staying under 512MB RAM
-        ]
+AGENTS_DIRS = ["airline_agent", "travel_agent", "personal_assistant"]
 
 def run_agents():
-    processes = []
-    
-    console.print("[bold blue]Starting all agents...[/bold blue]")
-    
-    for agent in AGENTS:
-        # Construct the uvicorn command
-        # Format: uvicorn <folder>.<file_basename>:a2a_app
+    # 1. Register Agents
+    console.print("[bold blue]Registering agents...[/bold blue]")
+    for agent_dir in AGENTS_DIRS:
+        card_path = os.path.abspath(os.path.join(agent_dir, "agent.json"))
+        if os.path.exists(card_path):
+            console.print(f"Registering {agent_dir}...")
+            # Note: register_to_rendezvous starts a daemon thread for heartbeat, 
+            # which will stay alive as long as this main script is running.
+            register_to_rendezvous(card_path)
+        else:
+            console.print(f"[bold red]Warning: No agent.json found for {agent_dir}[/bold red]")
 
-        # Convert file paths (agents/travel_agent) to python imports (agents.travel_agent)
-        clean_path = agent['path'].replace("/", ".").replace("\\", ".")
-        module_path = f"{clean_path}.agent:a2a_app"
-        cmd = get_uvicorn_command(module_path, agent["port"])
-        
-        console.print(f"Starting [bold cyan]{agent['name']}[/bold cyan] on port {agent['port']}...")
-        
-        # Prepare environment with agent name
-        agent_env = os.environ.copy()
-        agent_env["AGENT_NAME"] = agent["name"].replace("_", " ").upper()
-        # Python to run in unbuffered I/O mode. stdout and stderr are unbuffered. Print() appears immediately.
-        agent_env["PYTHONUNBUFFERED"] = "1"
-        
-        # Start the process. Using a separate shell on Windows to see output if needed, 
-        # but here we'll just pipe it to keep it clean.
+    # 2. Start ADK Server
+    # Check for 'uv'
+    uv_path = shutil.which("uv")
+    
+    # We pass "." to scan the current directory for agents
+    if uv_path:
+        console.print("[bold green]uv detected. Using 'uv run adk'[/bold green]")
+        cmd = [
+            "uv", "run", "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+        ]
+    else:
+        console.print("[bold yellow]uv not found. Using 'adk' directly[/bold yellow]")
+        cmd = [
+            "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+        ]
+
+    console.print(f"\n[bold blue]Starting agents with command:[/bold blue] {' '.join(cmd)}")
+
+    # Prepare environment
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+
+    try:
+        # Start the process
         process = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            env=agent_env
+            env=env
         )
-        processes.append((agent["name"], process))
         
-        # Short sleep if running locally
-        if shutil.which("uv"):
-            time.sleep(0.5)
-        # longer sleep to let the server start and register if running on Koyeb
-        else:
-            #time.sleep(10)
-            time.sleep(2)
+        console.print("[bold green]ADK Server running on port 9000...[/bold green]")
+        console.print("Access agents at http://127.0.0.1:9000/a2a/<agent_name>")
+        console.print("Press Ctrl+C to stop.\n")
 
-    console.print("\n[bold green]All agents are running![/bold green]")
-    console.print("Press Ctrl+C to stop all agents.\n")
-
-    try:
         while True:
-            for name, proc in processes:
-                # Read output non-blockingly (simple version)
-                line = proc.stdout.readline()
-                if line:
-                    console.print(f"[[bold]{name}[/bold]] {line.strip()}")
-                
-                if proc.poll() is not None:
-                    console.print(f"[bold red]Process {name} exited with code {proc.returncode}[/bold red]")
-                    return
-            time.sleep(0.1)
+            # Read output non-blockingly
+            line = process.stdout.readline()
+            if line:
+                console.print(f"[ADK] {line.strip()}")
+            
+            if process.poll() is not None:
+                console.print(f"[bold red]Process exited with code {process.returncode}[/bold red]")
+                break
+            time.sleep(0.01)
+
     except KeyboardInterrupt:
-        console.print("\n[bold yellow]Stopping all agents...[/bold yellow]")
-        for name, proc in processes:
-            proc.terminate()
-            console.print(f"Stopped {name}.")
+        console.print("\n[bold yellow]Stopping ADK server...[/bold yellow]")
+        if 'process' in locals():
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+            console.print("Stopped.")
+    except Exception as e:
+        console.print(f"[bold red]Error running agents: {e}[/bold red]")
+        if 'process' in locals():
+            process.kill()
 
 if __name__ == "__main__":
     run_agents()
