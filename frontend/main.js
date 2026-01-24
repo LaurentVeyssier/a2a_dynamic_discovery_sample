@@ -209,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         return [
             `I want to book a trip to Paris on ${dateStr}`,
-            `I need a reservation for Tokyo on ${dateStr}`,
+            `I need to go to Tokyo on ${dateStr}`,
             `Arrange one hotel night in Madrid on ${dateStr}`,
             `I plan a trip to New York City on ${dateStr}. Organize the plane and the hotel.`
         ];
