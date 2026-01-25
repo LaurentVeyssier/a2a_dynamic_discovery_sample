@@ -171,6 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const startupOverlay = document.getElementById('startup-overlay');
     const startupText = document.getElementById('startup-text');
 
+    let healthCheckInterval;
+
     // Check PA Agent status
     async function checkPAStatus() {
         try {
@@ -186,6 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     startupOverlay.classList.add('fade-out');
                     // Optional: remove from DOM after transition
                     setTimeout(() => startupOverlay.style.display = 'none', 1000);
+                }
+
+                // OPTIMIZATION: Stop polling once ready, as requested by user.
+                if (healthCheckInterval) {
+                    clearInterval(healthCheckInterval);
+                    healthCheckInterval = null;
                 }
             } else {
                 // Backend responding (HTTP 200) but Agents not ready OR Backend down
@@ -206,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSSE();
     checkPAStatus();
     renderSuggestions();
-    setInterval(checkPAStatus, 5000); // Check every 5s instead of 10s for faster feedback
+    healthCheckInterval = setInterval(checkPAStatus, 5000); // Check every 5s until ready
 
     // --- Suggestion Logic ---
     function renderSuggestions() {
