@@ -20,11 +20,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Enable CORS for development
+# Enable CORS
+# forwarded_allow_ips="*" means we trust the Load Balancer (GCP/Koyeb) to tell us the real client IP and Protocol (HTTPS).
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"https?://.*",  # Allows any domain via HTTP or HTTPS - will allow firebase proxy "https://a2a-dynamic-discovery-observatory.web.app"
-    allow_credentials=True,
+    allow_origins=[
+        "https://a2a-dynamic-discovery-observatory.web.app", # Firebase Proxy
+        "http://localhost:8000",
+        "http://127.0.0.1:8000"
+    ],
+    allow_credentials=True, 
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -175,6 +180,17 @@ if os.path.exists(frontend_path):
 
 if __name__ == "__main__":
     import uvicorn
-    # Use PORT env var for deployment compatibility (GCP uses 8080 by default)
-    #port = int(os.getenv("PORT", 8000))
-    uvicorn.run("frontend_app:app", host="0.0.0.0", port=8000, workers=1) #timeout_keep_alive=60,
+    # Robust PORT handling: GCP/Koyeb often inject PORT env var.
+    # We default to 8000.
+    port = int(os.environ.get("PORT", 8000))
+    
+    # proxy_headers=True is critical for running behind Load Balancers (GCP, Koyeb)
+    # to correctly handle X-Forwarded-Proto (HTTPS) and preventing connection drops.
+    uvicorn.run(
+        "frontend_app:app", 
+        host="0.0.0.0", 
+        port=port, 
+        workers=1,
+        proxy_headers=True,
+        forwarded_allow_ips="*"
+    )
