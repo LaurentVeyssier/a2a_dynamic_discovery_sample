@@ -3,7 +3,7 @@ import json
 import os
 import uuid
 import httpx
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,7 +23,7 @@ app = FastAPI()
 # Enable CORS for development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"https?://.*",  # Allows any domain via HTTP or HTTPS - will allow firebase proxy "https://a2a-dynamic-discovery-observatory.web.app"
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,8 +43,15 @@ class ChatMessage(BaseModel):
 
 @app.get("/api/health")
 async def health():
-    """Health check endpoint."""
-    return {"status": "ok"}
+    """Health check endpoint. Checks if agents are reachable."""
+    try:
+        async with httpx.AsyncClient() as client:
+            # We don't care about the response content, just that we can connect.
+            await client.get(PA_AGENT_URL, timeout=2.0)
+            return {"status": "ok"}
+    except Exception as e:
+        # If we can't connect, return 503 Service Unavailable
+        raise HTTPException(status_code=503, detail="Agents unavailable")
 
 @app.post("/api/chat")
 async def chat(msg: ChatMessage):

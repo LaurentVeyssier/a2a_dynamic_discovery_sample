@@ -167,14 +167,34 @@ document.addEventListener('DOMContentLoaded', () => {
         eventList = [];
     });
 
+    // Startup Overlay Logic
+    const startupOverlay = document.getElementById('startup-overlay');
+    const startupText = document.getElementById('startup-text');
+
     // Check PA Agent status
     async function checkPAStatus() {
         try {
-            const res = await fetch('/api/health');
-            if (res.ok) paStatus.classList.add('active');
-            else paStatus.classList.remove('active');
+            // Add timestamp to prevent caching
+            const res = await fetch(`/api/health?t=${Date.now()}`);
+            if (res.ok) {
+                paStatus.classList.add('active');
+                // Hide overlay on success
+                if (startupOverlay && !startupOverlay.classList.contains('fade-out')) {
+                    startupOverlay.classList.add('fade-out');
+                    // Optional: remove from DOM after transition
+                    setTimeout(() => startupOverlay.style.display = 'none', 1000);
+                }
+            } else {
+                paStatus.classList.remove('active');
+                if (startupOverlay && !startupOverlay.classList.contains('fade-out')) {
+                    startupText.textContent = "Waking up backend... (this might take a minute)";
+                }
+            }
         } catch {
             paStatus.classList.remove('active');
+            if (startupOverlay && !startupOverlay.classList.contains('fade-out')) {
+                startupText.textContent = "Waking up backend... (retrying)";
+            }
         }
     }
 
@@ -182,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSSE();
     checkPAStatus();
     renderSuggestions();
-    setInterval(checkPAStatus, 10000);
+    setInterval(checkPAStatus, 5000); // Check every 5s instead of 10s for faster feedback
 
     // --- Suggestion Logic ---
     function renderSuggestions() {
