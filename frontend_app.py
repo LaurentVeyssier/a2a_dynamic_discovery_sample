@@ -16,6 +16,8 @@ load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
+# Suppress noisy httpx access logs (e.g. from health checks)
+#logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -36,6 +38,9 @@ event_history = []
 event_counter = 0
 history_lock = asyncio.Lock()
 subscribers = set()
+# Optimization: Cache "ready" state to avoid hammering the agent process
+# if the platform probes frequently.
+agents_ready = False
 
 # Constants
 PA_AGENT_URL = os.getenv("PA_AGENT_URL", "http://127.0.0.1:9000/a2a/personal_assistant")
@@ -50,6 +55,13 @@ async def health():
     Always returns 200 OK to keep the container 'healthy' from the platform's perspective.
     The 'ready' field indicates if the agents are actually up.
     """
+    global agents_ready
+    
+    # If we already confirmed they are ready, skip the check to save resources.
+    # Platform probes might call this every few seconds.
+    if agents_ready:
+        return {"status": "ok", "ready": True}
+
     try:
         async with httpx.AsyncClient() as client:
             # Check availability by fetching the agent card.
@@ -58,6 +70,7 @@ async def health():
             
             response = await client.get(card_url, timeout=2.0)
             if response.status_code == 200:
+                 agents_ready = True
                  return {"status": "ok", "ready": True}
             
             # If agent returns non-200, we are not ready yet
