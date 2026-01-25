@@ -46,8 +46,16 @@ async def health():
     """Health check endpoint. Checks if agents are reachable."""
     try:
         async with httpx.AsyncClient() as client:
-            # We don't care about the response content, just that we can connect.
-            await client.get(PA_AGENT_URL, timeout=2.0)
+            # Check availability by fetching the agent card.
+            # This is a standard GET request that yields 200 OK with no side effects or warnings.
+            # Handle potential trailing slash in PA_AGENT_URL
+            base_url = PA_AGENT_URL.rstrip("/")
+            card_url = f"{base_url}/.well-known/agent-card.json"
+            
+            response = await client.get(card_url, timeout=2.0)
+            if response.status_code != 200:
+                 raise HTTPException(status_code=503, detail="Agent card unreachable")
+                 
             return {"status": "ok"}
     except Exception as e:
         # If we can't connect, return 503 Service Unavailable
@@ -167,4 +175,6 @@ if os.path.exists(frontend_path):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("frontend_app:app", host="0.0.0.0", port=8000, workers=1) #timeout_keep_alive=60,
+    # Use PORT env var for deployment compatibility (GCP uses 8080 by default)
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("frontend_app:app", host="0.0.0.0", port=port, workers=1) #timeout_keep_alive=60,
