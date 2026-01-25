@@ -182,14 +182,14 @@ if __name__ == "__main__":
     import uvicorn
     # Robust PORT handling: GCP/Koyeb often inject PORT env var.
     # We default to 8000.
-    port = int(os.environ.get("PORT", 8000))
+    #port = int(os.environ.get("PORT", 8000))
     
     # proxy_headers=True is critical for running behind Load Balancers (GCP, Koyeb)
     # to correctly handle X-Forwarded-Proto (HTTPS) and preventing connection drops.
     uvicorn.run(
         "frontend_app:app", 
         host="0.0.0.0", 
-        port=port, 
+        port=8000, 
         workers=1,
         proxy_headers=True,
         forwarded_allow_ips="*"
