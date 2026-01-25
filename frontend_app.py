@@ -21,14 +21,11 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 
 # Enable CORS
-# forwarded_allow_ips="*" means we trust the Load Balancer (GCP/Koyeb) to tell us the real client IP and Protocol (HTTPS).
+# Using regex to allow any origin while supporting credentials is the most flexible approach for this demo.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://a2a-dynamic-discovery-observatory.web.app", # Firebase Proxy
-        "http://localhost:8000",
-        "http://127.0.0.1:8000"
-    ],
+    #allow_origin_regex=r"https?://.*", 
+    allow_origins=["*"],
     allow_credentials=True, 
     allow_methods=["*"],
     allow_headers=["*"],
@@ -185,12 +182,13 @@ if __name__ == "__main__":
     #port = int(os.environ.get("PORT", 8000))
     
     # proxy_headers=True is critical for running behind Load Balancers (GCP, Koyeb)
-    # to correctly handle X-Forwarded-Proto (HTTPS) and preventing connection drops.
+    # timeout_keep_alive=75 prevents "Truncated response" errors on Cloud Run (which keeps connections open for 60s)
     uvicorn.run(
         "frontend_app:app", 
         host="0.0.0.0", 
         port=8000, 
         workers=1,
         proxy_headers=True,
-        forwarded_allow_ips="*"
+        forwarded_allow_ips="*",
+        timeout_keep_alive=75
     )
