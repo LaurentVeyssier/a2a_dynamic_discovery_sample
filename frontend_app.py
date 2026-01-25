@@ -176,5 +176,5 @@ if os.path.exists(frontend_path):
 if __name__ == "__main__":
     import uvicorn
     # Use PORT env var for deployment compatibility (GCP uses 8080 by default)
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("frontend_app:app", host="0.0.0.0", port=port, workers=1) #timeout_keep_alive=60,
+    #port = int(os.getenv("PORT", 8000))
+    uvicorn.run("frontend_app:app", host="0.0.0.0", port=8000, workers=1) #timeout_keep_alive=60,
