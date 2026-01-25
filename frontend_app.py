@@ -45,23 +45,27 @@ class ChatMessage(BaseModel):
 
 @app.get("/api/health")
 async def health():
-    """Health check endpoint. Checks if agents are reachable."""
+    """
+    Health check endpoint. 
+    Always returns 200 OK to keep the container 'healthy' from the platform's perspective.
+    The 'ready' field indicates if the agents are actually up.
+    """
     try:
         async with httpx.AsyncClient() as client:
             # Check availability by fetching the agent card.
-            # This is a standard GET request that yields 200 OK with no side effects or warnings.
-            # Handle potential trailing slash in PA_AGENT_URL
             base_url = PA_AGENT_URL.rstrip("/")
             card_url = f"{base_url}/.well-known/agent-card.json"
             
             response = await client.get(card_url, timeout=2.0)
-            if response.status_code != 200:
-                 raise HTTPException(status_code=503, detail="Agent card unreachable")
-                 
-            return {"status": "ok"}
-    except Exception as e:
-        # If we can't connect, return 503 Service Unavailable
-        raise HTTPException(status_code=503, detail="Agents unavailable")
+            if response.status_code == 200:
+                 return {"status": "ok", "ready": True}
+            
+            # If agent returns non-200, we are not ready yet
+            return {"status": "starting", "ready": False}
+    except Exception:
+        # If connection fails, agents are still waking up.
+        # Return 200 with ready=False to prevent platform restarts.
+        return {"status": "starting", "ready": False}
 
 @app.post("/api/chat")
 async def chat(msg: ChatMessage):

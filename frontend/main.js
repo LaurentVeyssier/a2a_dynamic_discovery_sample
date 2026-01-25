@@ -176,7 +176,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Add timestamp to prevent caching
             const res = await fetch(`/api/health?t=${Date.now()}`);
-            if (res.ok) {
+            const data = await res.json().catch(() => ({})); // Safe parsing
+
+            // Backend is healthy (HTTP 200) AND Agents are ready
+            if (res.ok && data.ready) {
                 paStatus.classList.add('active');
                 // Hide overlay on success
                 if (startupOverlay && !startupOverlay.classList.contains('fade-out')) {
@@ -185,6 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => startupOverlay.style.display = 'none', 1000);
                 }
             } else {
+                // Backend responding (HTTP 200) but Agents not ready OR Backend down
                 paStatus.classList.remove('active');
                 if (startupOverlay && !startupOverlay.classList.contains('fade-out')) {
                     startupText.textContent = "Waking up backend... (this might take a minute)";
