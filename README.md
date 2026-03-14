@@ -105,7 +105,7 @@ You have 2 versions of the app in the github repo.
 In this approach, each agent is a separate process and has its own port. It is achieved using separate uv run uvicorn commands for each agent.
 The drawback is that it consumes more memory (each process has its own Python interpreter, etc.) and does not fit in 512MB RAM often used for deployment. 
 
-    This version can be found as this commit in the github repo: https://github.com/LaurentVeyssier/a2a_dynamic_discovery_sample/commit/a88ae24ab49377ded161dee06460b1a735675f6b. In this version, the agentcards are reachable at `http://localhost:<port>.well-known/agent-card.json`.
+    This version can be found as this commit in the github repo: https://github.com/LaurentVeyssier/a2a_dynamic_discovery_sample/commit/a88ae24ab49377ded161dee06460b1a735675f6b. In this version, the agentcards are reachable at `http://localhost:<port>/.well-known/agent-card.json`.
 
     This approach would be the most likely to be used in production as it is more flexible and allows to scale the agents independently.
 
@@ -113,7 +113,7 @@ The drawback is that it consumes more memory (each process has its own Python in
 
     In this approach, all agents run in the same process and share the same port. The memory footprint is much smaller (350MB in Railway to 450MB in koyeb) and it fits in 512MB RAM. 
     
-    This version is the last commit in the github repo. In this version, the agentcards are now reachable at `http://localhost:9000/a2a/<agent_name>.well-known/agent-card.json`. The agentcards are all updated and the rendezvous registry records these endpoints. 
+    This version is the last commit in the github repo. In this version, the agentcards are now reachable at `http://localhost:9000/a2a/<agent_name>/.well-known/agent-card.json`. The agentcards are all updated and the rendezvous registry records these endpoints. 
     
     This change has been done to reduce the memory footprint of the app and make it more suitable for deployment on platforms with limited resources.
     
