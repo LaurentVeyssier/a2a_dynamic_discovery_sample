@@ -26,7 +26,7 @@ retry_config = types.HttpRetryOptions(
 
 # Travel Agent that coordinates between requester (personal assistant) and airline
 root_agent = Agent(
-    model=Gemini(model="gemini-2.0-flash", retry_options=retry_config),
+    model=Gemini(model=os.getenv("MODEL_NAME", "gemini-2.5-flash"), retry_options=retry_config),
     name="travel_agent",
     description="Travel agent that books flights by coordinating with an airline and the user's personal assistant.",
     instruction=(

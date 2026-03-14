@@ -50,7 +50,7 @@ example_tool = ExampleTool([
 ])
 
 root_agent = Agent(
-    model="gemini-2.0-flash",
+    model=os.getenv("MODEL_NAME", "gemini-2.5-flash"),
     name="airline_agent",
     description="Airline company agent that books flights and requires passport details to confirm.",
     instruction=(

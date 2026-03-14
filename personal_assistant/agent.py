@@ -34,7 +34,7 @@ retry_config = types.HttpRetryOptions(
 )
 
 root_agent = Agent(
-    model=Gemini(model="gemini-2.0-flash", retry_options=retry_config),
+    model=Gemini(model=os.getenv("MODEL_NAME", "gemini-2.5-flash"), retry_options=retry_config),
     name="personal_assistant",
     description="Personal assistant that helps the user with their travel needs.",
     instruction=(
