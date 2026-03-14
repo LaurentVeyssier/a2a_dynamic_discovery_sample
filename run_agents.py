@@ -34,7 +34,7 @@ def run_agents():
     if uv_path:
         console.print("[bold green]uv detected. Using 'uv run adk'[/bold green]")
         cmd = [
-            "uv", "run", "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+            "uv", "run", "--active", "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
         ]
     else:
         console.print("[bold yellow]uv not found. Using 'adk' directly[/bold yellow]")
