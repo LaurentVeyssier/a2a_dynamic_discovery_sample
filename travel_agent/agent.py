@@ -14,7 +14,7 @@ from tools.discovery_tools import get_discovery_tools
 # Instantiate tools with agent identity
 discovery_agent_tool, handshake_tool, call_remote_agent_tool = get_discovery_tools("travel_agent")
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Define the retry configuration
 retry_config = types.HttpRetryOptions(

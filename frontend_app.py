@@ -12,7 +12,7 @@ from sse_starlette.sse import EventSourceResponse
 import logging
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -11,7 +11,7 @@ from typing import Dict, Any, Optional, List, Tuple, Callable
 from rich.console import Console
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 warnings.filterwarnings("ignore", category=UserWarning, module="google.adk.*")
 

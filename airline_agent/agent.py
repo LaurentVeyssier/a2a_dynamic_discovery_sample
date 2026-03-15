@@ -8,7 +8,7 @@ from google.adk.tools.example_tool import ExampleTool
 from rich.console import Console
 console = Console()
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 # Add parent directory to sys.path to allow importing discovery_tools
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

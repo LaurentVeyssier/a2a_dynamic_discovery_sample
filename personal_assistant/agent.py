@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 import sys
 import os
 
-load_dotenv()
+load_dotenv(override=True)
 
 # Add parent directory to sys.path to allow importing discovery_tools
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
