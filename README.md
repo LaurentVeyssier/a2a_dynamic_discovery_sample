@@ -1,4 +1,4 @@
-# A2A Dynamic Discovery Sample
+# A2A Dynamic Discovery Observatory
 
 This project demonstrates a multi-agent system using the **Agent-to-Agent (A2A) protocol** with **dynamic discovery** via a central rendezvous agent.
 
