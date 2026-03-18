@@ -40,18 +40,22 @@ def run_agents():
         console.print("[bold yellow]uv not found. Using 'adk' directly[/bold yellow]")
         # Check if we are running in Azure's production environment
         if os.path.exists("/antenv/bin/adk"):
+            python_path = "/antenv/bin/python"
             adk_path = "/antenv/bin/adk"
             console.print(f"[bold green]Azure environment detected. Using absolute path: {adk_path}[/bold green]")
+            cmd = [
+                python_path, adk_path, "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+            ]
+        
         else:
             # Fallback for when you test on your local machine
             # Get the exact directory where the current Python is running
             bin_dir = os.path.dirname(sys.executable)
             adk_path = os.path.join(bin_dir, "adk")
             console.print(f"[bold green]Local environment detected. Using: {adk_path}[/bold green]")
-
-        cmd = [
-            adk_path, "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
-        ]
+            cmd = [
+                adk_path, "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+            ]
         # cmd = [
         #     "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
         # ]
