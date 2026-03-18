@@ -12,8 +12,8 @@ jobs:
     
     # This tracks the deployment in GitHub's UI
     environment:
-      name: production
-      url: 'https://a2a-with-dynamic-discovery-fxdkbva0hufnc6ev.westeurope-01.azurewebsites.net' # <-- UPDATE THIS
+      name: 'azure/production'
+      url: 'https://a2a-discovery-demo-app-bnhvaveuepb4b5f9.francecentral-01.azurewebsites.net' # <-- UPDATE THIS
 
     steps:
       - name: Checkout GitHub Action
@@ -33,8 +33,6 @@ jobs:
           UV_PROJECT_ENVIRONMENT: antenv 
         run: |
           uv sync --frozen
-          # Copy the uv binary into the virtual environment so Azure gets it!
-          cp $(which uv) antenv/bin/
 
       - name: Log in to Azure
         uses: azure/login@v2
@@ -44,6 +42,6 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'a2a-with-dynamic-discovery' # <-- UPDATE THIS
+          app-name: 'a2a-discovery-demo-app' # <-- UPDATE THIS
           slot-name: 'production'
           package: .
