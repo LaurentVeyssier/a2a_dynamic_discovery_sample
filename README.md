@@ -181,8 +181,6 @@ Each agent calls register_to_rendezvous with path to its agentcard or `agent.jso
 
 - The rendezvous agent is deployed as a Cloudflare Worker.
 
-- The agents, the fastAPI app and the frontend are deployed on Koyeb at https://devoted-bobolink-laurentv-b974bbd2.koyeb.app/
-
-- It is also deployed on Railway at https://a2adynamicdiscoverysample-production.up.railway.app/
+- The agents, the fastAPI app and the frontend are deployed on Azure Web App at https://a2a-discovery-demo-app-bnhvaveuepb4b5f9.francecentral-01.azurewebsites.net/
 
 
