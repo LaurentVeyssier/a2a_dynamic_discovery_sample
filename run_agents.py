@@ -37,10 +37,17 @@ def run_agents():
             "uv", "run", "--active", "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
         ]
     else:
-        console.print("[bold yellow]uv not found. Using 'adk' directly[/bold yellow]")
+        # Get the exact directory where the current Python is running
+        bin_dir = os.path.dirname(sys.executable)
+        adk_path = os.path.join(bin_dir, "adk")
+        console.print(f"[bold yellow]Using absolute path for ADK: {adk_path}[/bold yellow]")
         cmd = [
-            "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+            adk_path, "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
         ]
+        console.print("[bold yellow]uv not found. Using 'adk' directly[/bold yellow]")
+        # cmd = [
+        #     "adk", "api_server", ".", "--a2a", "--port", "9000", "--log_level", "warning"
+        # ]
 
     console.print(f"\n[bold blue]Starting agents with command:[/bold blue] {' '.join(cmd)}")
 
